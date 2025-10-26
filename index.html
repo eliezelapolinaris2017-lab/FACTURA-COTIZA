@@ -164,12 +164,11 @@
     </main>
   </div>
 
-  <!-- ====== PLANTILLA PDF (formato Oasis) ====== -->
+  <!-- ====== PLANTILLA PDF (formato Oasis exacto) ====== -->
   <section id="printArea">
-    <div class="sheet">
-      <header class="head">
-        <!-- Izquierda: metadatos -->
-        <div class="meta">
+    <div class="sheet" id="pdfSheet">
+      <header class="pdf-head">
+        <div class="pdf-meta">
           <h2 id="pDocTitle">Factura</h2>
           <p><b>Número:</b> <span id="pNumber">—</span></p>
           <p><b>Fecha:</b> <span id="pDate">—</span></p>
@@ -177,33 +176,29 @@
           <p><b>Pago:</b> <span id="pPay">—</span></p>
           <p><b>Estado:</b> <span id="pStatus">final</span></p>
         </div>
-
-        <!-- Derecha: logo + negocio -->
-        <div class="brand">
-          <img id="pLogo" class="logo" alt="">
-          <div class="biz">
+        <div class="pdf-brand">
+          <img id="pLogo" class="pdf-logo" alt="">
+          <div class="pdf-biz">
             <h3 id="pBizName">Nombre del Negocio</h3>
             <div id="pBizPhone" class="muted">Tel: —</div>
           </div>
         </div>
       </header>
 
-      <!-- Tabla ítems -->
-      <table class="items">
+      <table class="pdf-items" id="pTable">
         <thead>
           <tr>
-            <th>Ítem</th>
-            <th>Detalle</th>
-            <th class="right">Precio</th>
-            <th class="right">Cant.</th>
-            <th class="right">Importe</th>
+            <th class="c-item">Ítem</th>
+            <th class="c-detalle">Detalle</th>
+            <th class="c-precio right">Precio</th>
+            <th class="c-cant right">Cant.</th>
+            <th class="c-importe right">Importe</th>
           </tr>
         </thead>
         <tbody id="pLines"></tbody>
       </table>
 
-      <!-- Totales caja derecha -->
-      <section class="totals">
+      <section class="pdf-totals">
         <table>
           <tbody>
             <tr><td>Subtotal</td><td class="right" id="pSubtotal">$0.00</td></tr>
@@ -214,14 +209,12 @@
         </table>
       </section>
 
-      <!-- Notas -->
-      <section class="notes">
+      <section class="pdf-notes">
         <p><b>Notas:</b></p>
         <p id="pNotes">—</p>
       </section>
 
-      <!-- Pie -->
-      <footer class="foot">
+      <footer class="pdf-foot">
         <div>https://eliezelapolinaris2017-lab.github.io/FACTURA-COTIZA/</div>
         <div><span id="pGen">—</span> · Página <span class="pageNumber"></span> de <span class="totalPages"></span></div>
       </footer>
@@ -232,4 +225,3 @@
   <script type="module" src="./app.js"></script>
 </body>
 </html>
-
