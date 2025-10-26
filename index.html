@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FACTURA-COTIZA</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <img id="brandLogo" src="assets/logo-placeholder.png" alt="Logo" />
+        <h2>FACTURA-COTIZA</h2>
+      </div>
+
+      <nav class="nav">
+        <button class="navlink active" data-nav="nuevo">🧾 Nuevo</button>
+        <button class="navlink" data-nav="historial">📚 Historial</button>
+        <button class="navlink" data-nav="config">⚙️ Configuración</button>
+      </nav>
+
+      <footer class="auth-box">
+        <div class="auth-info">
+          <p><b>Estado:</b> <span id="authState">Sin sesión</span></p>
+          <p><b>UID:</b> <span id="uid">—</span></p>
+        </div>
+        <button id="btnLogin" class="btn btn-gold">🔑 Iniciar sesión con Google</button>
+        <button id="btnLogout" class="btn btn-dark" style="display:none">🚪 Cerrar sesión</button>
+      </footer>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <button id="btnToggle" class="hamburger" aria-label="Mostrar/ocultar menú">☰</button>
+        <h1>FACTURA-COTIZA</h1>
+      </header>
+
+      <!-- NUEVO -->
+      <section id="view-nuevo" class="view visible">
+        <h2>🧾 Nueva Factura o Cotización</h2>
+
+        <form id="formDoc" class="card">
+          <div class="grid">
+            <label>Número (opcional)
+              <input id="docNumber" placeholder="Ej: FAC-2 o COT-5">
+            </label>
+            <label>Tipo
+              <select id="docType">
+                <option value="FAC">Factura</option>
+                <option value="COT">Cotización</option>
+              </select>
+            </label>
+            <label>Fecha
+              <input type="date" id="docDate" required>
+            </label>
+            <label>Cliente (nombre)
+              <input type="text" id="clientName" required placeholder="Nombre o empresa">
+            </label>
+            <label>Cliente (teléfono)
+              <input type="tel" id="clientPhone" placeholder="787-555-5555" inputmode="tel">
+            </label>
+            <label>Método de pago
+              <select id="docPay">
+                <option>ATH Móvil</option>
+                <option>Tarjeta</option>
+                <option>Efectivo</option>
+                <option>Cheque</option>
+                <option>PayPal</option>
+                <option>Otros</option>
+              </select>
+            </label>
+            <label>Notas
+              <input type="text" id="docNotes" placeholder="Condiciones, garantías, etc.">
+            </label>
+          </div>
+
+          <h3>Servicios / Ítems</h3>
+          <div class="tablewrap">
+            <table class="table" id="tblItems">
+              <thead>
+                <tr>
+                  <th>Ítem</th>
+                  <th>Descripción</th>
+                  <th style="width:10ch">Precio</th>
+                  <th style="width:10ch">Cant.</th>
+                  <th style="width:12ch" class="right">Importe</th>
+                  <th style="width:6ch"></th>
+                </tr>
+              </thead>
+              <tbody id="linesBody"></tbody>
+            </table>
+          </div>
+          <button type="button" id="btnAddLine" class="btn">➕ Añadir línea</button>
+
+          <div class="totals">
+            <label>Descuento %
+              <input id="tDiscPct" type="number" step="0.01" inputmode="decimal" value="0">
+            </label>
+            <label>IVU %
+              <input id="tTaxPct" type="number" step="0.01" inputmode="decimal" value="0">
+            </label>
+            <div><span>Subtotal</span><b id="tSubtotal">$0.00</b></div>
+            <div><span>Descuento</span><b id="tDiscAmt">$0.00</b></div>
+            <div><span>Impuesto</span><b id="tTaxAmt">$0.00</b></div>
+            <div class="total"><span>Total</span><b id="tTotal">$0.00</b></div>
+          </div>
+
+          <div class="toolbar end">
+            <button type="button" id="btnPrint" class="btn">📄 PDF</button>
+            <button type="submit" class="btn btn-gold">💾 Guardar</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- HISTORIAL -->
+      <section id="view-historial" class="view">
+        <h2>📚 Historial</h2>
+        <div class="toolbar">
+          <button id="btnReload" class="btn">🔄 Recargar</button>
+          <button id="btnCsv" class="btn btn-gold">📤 Exportar CSV</button>
+          <button id="btnBackup" class="btn btn-gold">💾 Backup JSON</button>
+          <label class="btn btn-dark" for="fileRestore" style="cursor:pointer">📂 Restaurar</label>
+          <input type="file" id="fileRestore" accept="application/json" style="display:none">
+        </div>
+        <div id="listDocs" class="list"></div>
+      </section>
+
+      <!-- CONFIGURACIÓN -->
+      <section id="view-config" class="view">
+        <h2>⚙️ Configuración del negocio</h2>
+        <form id="formCfg" class="card">
+          <div class="grid">
+            <label>Nombre de la empresa
+              <input type="text" id="cfgName" required>
+            </label>
+            <label>Teléfono
+              <input type="tel" id="cfgPhone" required inputmode="tel">
+            </label>
+            <label>Logo para FACTURA (FAC)
+              <input type="file" id="cfgLogoFAC" accept="image/*">
+            </label>
+            <label>Logo para COTIZACIÓN (COT)
+              <input type="file" id="cfgLogoCOT" accept="image/*">
+            </label>
+          </div>
+          <div class="logos">
+            <div>
+              <p>Vista FAC</p>
+              <img id="prevFAC" class="preview" alt="Logo FAC" />
+            </div>
+            <div>
+              <p>Vista COT</p>
+              <img id="prevCOT" class="preview" alt="Logo COT" />
+            </div>
+          </div>
+          <div class="toolbar end">
+            <button type="button" id="btnSync" class="btn sync-btn">🔁 Sincronizar con Firebase</button>
+            <button type="submit" class="btn btn-gold">💾 Guardar configuración</button>
+          </div>
+          <p class="muted" id="syncStamp" style="margin-top:6px">—</p>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- ====== PLANTILLA PDF (A4, formato profesional #2) ====== -->
+  <section id="printArea">
+    <div class="sheet" id="pdfSheet">
+      <header class="pdf-head">
+        <div class="pdf-meta">
+          <h2 id="pDocTitle">Factura</h2>
+          <p><b>Número:</b> <span id="pNumber">—</span></p>
+          <p><b>Fecha:</b> <span id="pDate">—</span></p>
+          <p><b>Cliente:</b> <span id="pClientName">—</span></p>
+          <p><b>Pago:</b> <span id="pPay">—</span></p>
+          <p><b>Estado:</b> <span id="pStatus">final</span></p>
+        </div>
+        <div class="pdf-brand">
+          <img id="pLogo" class="pdf-logo" alt="">
+          <div class="pdf-biz">
+            <h3 id="pBizName">Nombre del Negocio</h3>
+            <div id="pBizPhone" class="muted">Tel: —</div>
+          </div>
+        </div>
+      </header>
+
+      <table class="pdf-items" id="pTable">
+        <thead>
+          <tr>
+            <th class="c-item">Ítem</th>
+            <th class="c-detalle">Detalle</th>
+            <th class="c-precio right">Precio</th>
+            <th class="c-cant right">Cant.</th>
+            <th class="c-importe right">Importe</th>
+          </tr>
+        </thead>
+        <tbody id="pLines"></tbody>
+      </table>
+
+      <section class="pdf-totals">
+        <table>
+          <tbody>
+            <tr><td>Subtotal</td><td class="right" id="pSubtotal">$0.00</td></tr>
+            <tr><td id="pDiscLbl">Descuento (0%)</td><td class="right" id="pDiscAmt">$0.00</td></tr>
+            <tr><td id="pTaxLbl">IVU (0%)</td><td class="right" id="pTaxAmt">$0.00</td></tr>
+            <tr class="total"><td>Total</td><td class="right" id="pTotal">$0.00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="pdf-notes">
+        <p><b>Notas:</b></p>
+        <p id="pNotes">—</p>
+      </section>
+
+      <footer class="pdf-foot">
+        <div>https://eliezelapolinaris2017-lab.github.io/FACTURA-COTIZA/</div>
+        <div><span id="pGen">—</span> · Página <span class="pageNumber"></span> de <span class="totalPages"></span></div>
+      </footer>
+    </div>
+  </section>
+
+  <script type="module" src="./firebase-init.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
