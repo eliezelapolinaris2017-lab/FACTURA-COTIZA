@@ -1,23 +1,23 @@
 import { auth, db, login, logout, onUser } from "./firebase-init.js";
 import {
-  collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, updateDoc
+  collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, updateDoc,
+  runTransaction, deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Helpers
-  const $ = s => document.querySelector(s);
+  // ---------- Helpers ----------
+  const $  = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const fmt = n => Number(n||0).toFixed(2);
   const isoToday = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
   const toBase64 = f => new Promise((res,rej)=>{ if(!f) return res(""); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
   const csvCell = v => { if(v==null) return ""; const s=String(v).replace(/"/g,'""'); return /[",\n]/.test(s)?`"${s}"`:s; };
 
-  // Sidebar colapsable
+  // Sidebar móvil
   const sidebar = $("#sidebar");
   $("#btnToggle")?.addEventListener("click", ()=> sidebar.classList.toggle("open"));
   $$(".navlink").forEach(b=> b.addEventListener("click", ()=> sidebar.classList.remove("open")));
 
-  // Navegación
   function showView(id){
     $$(".navlink").forEach(b=> b.classList.toggle("active", b.dataset.nav===id));
     $$(".view").forEach(v=> v.classList.remove("visible"));
@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Estado
   let USER = null;
-  let CFG = { companyName:"", companyPhone:"", logoFAC:"", logoCOT:"" };
+  window.CFG = { companyName:"", companyPhone:"", logoFAC:"", logoCOT:"" };
 
   // Auth
   $("#btnLogin")?.addEventListener("click", ()=> login().catch(e=>alert(e.message)));
@@ -51,37 +51,51 @@ window.addEventListener("DOMContentLoaded", () => {
     await loadHistorial();
   });
 
-  // -------- CONFIGURACIÓN --------
+  // ---------- Configuración ----------
   async function loadConfig(){
     if(!USER) return;
     const ref = doc(db, `users/${USER.uid}/profile/main`);
     const snap = await getDoc(ref);
-    if(snap.exists()) CFG = {...CFG, ...snap.data()};
-    $("#cfgName") && ($("#cfgName").value = CFG.companyName || "");
-    $("#cfgPhone") && ($("#cfgPhone").value = CFG.companyPhone || "");
-    $("#prevFAC") && ($("#prevFAC").src = CFG.logoFAC || "assets/logo-placeholder.png");
-    $("#prevCOT") && ($("#prevCOT").src = CFG.logoCOT || "assets/logo-placeholder.png");
-    $("#brandLogo").src = CFG.logoFAC || CFG.logoCOT || "assets/logo-placeholder.png";
+    if(snap.exists()) window.CFG = { ...window.CFG, ...snap.data() };
+    $("#cfgName").value = window.CFG.companyName || "";
+    $("#cfgPhone").value = window.CFG.companyPhone || "";
+    $("#prevFAC").src = window.CFG.logoFAC || "assets/logo-placeholder.png";
+    $("#prevCOT").src = window.CFG.logoCOT || "assets/logo-placeholder.png";
+    $("#brandLogo").src = window.CFG.logoFAC || window.CFG.logoCOT || "assets/logo-placeholder.png";
   }
 
   $("#formCfg")?.addEventListener("submit", async e=>{
     e.preventDefault();
     if(!USER) return alert("Inicia sesión primero");
-    CFG.companyName = $("#cfgName").value.trim();
-    CFG.companyPhone = $("#cfgPhone").value.trim();
+    window.CFG.companyName = $("#cfgName").value.trim();
+    window.CFG.companyPhone = $("#cfgPhone").value.trim();
     const fFAC = $("#cfgLogoFAC").files[0];
     const fCOT = $("#cfgLogoCOT").files[0];
-    if(fFAC) CFG.logoFAC = await toBase64(fFAC);
-    if(fCOT) CFG.logoCOT = await toBase64(fCOT);
-    await setDoc(doc(db, `users/${USER.uid}/profile/main`), CFG);
+    if(fFAC) window.CFG.logoFAC = await toBase64(fFAC);
+    if(fCOT) window.CFG.logoCOT = await toBase64(fCOT);
+    await setDoc(doc(db, `users/${USER.uid}/profile/main`), window.CFG, {merge:true});
     alert("Configuración guardada ✅");
     await loadConfig();
   });
 
-  // -------- NUEVO DOCUMENTO --------
+  // ---------- Numeración por tipo ----------
+  async function nextNumber(type){
+    const ctrRef = doc(db, `users/${USER.uid}/profile/counters`);
+    const num = await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ctrRef);
+      let data = snap.exists()? snap.data() : {};
+      let n = Number(data[type]||0) + 1;
+      tx.set(ctrRef, { [type]: n }, { merge:true });
+      return n;
+    });
+    return `${type}-${num}`; // FAC-2, COT-5 ...
+  }
+
+  // ---------- Nuevo documento ----------
   function initNuevo(){
     $("#docDate").value = isoToday();
     const tbody = $("#linesBody");
+
     const addLine = ()=>{
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -100,7 +114,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     $("#tDiscPct").addEventListener("input", calcTotals);
     $("#tTaxPct").addEventListener("input", calcTotals);
-
     $("#formDoc").addEventListener("submit", saveDoc);
     $("#btnPrint").addEventListener("click", printDoc);
   }
@@ -128,9 +141,14 @@ window.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     if(!USER) return alert("Inicia sesión primero");
 
+    // número: si está vacío → autoincremento por tipo
+    let number = $("#docNumber").value.trim();
+    const type = $("#docType").value;
+    if(!number) number = await nextNumber(type);
+
     const docData = {
-      number: $("#docNumber").value.trim() || "",               // Número editable
-      type:   $("#docType").value,                              // FAC | COT
+      number,
+      type,                                      // FAC | COT
       date:   $("#docDate").value || isoToday(),
       client: $("#clientName").value.trim(),
       phone:  $("#clientPhone").value.trim(),
@@ -156,12 +174,17 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 
     await addDoc(collection(db, `users/${USER.uid}/documents`), docData);
-    alert("✅ Documento guardado");
+
+    // limpiar y refrescar automáticamente
+    $("#formDoc").reset();
+    $("#linesBody").innerHTML="";
+    initNuevo();
     await loadHistorial();
     showView("historial");
+    alert(`✅ Guardado: ${docData.type} ${docData.number}`);
   }
 
-  // -------- HISTORIAL --------
+  // ---------- Historial ----------
   $("#btnReload")?.addEventListener("click", loadHistorial);
   $("#btnCsv")?.addEventListener("click", exportCSV);
   $("#btnBackup")?.addEventListener("click", backupAll);
@@ -169,8 +192,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   async function loadHistorial(){
     if(!USER) return;
-    const q = query(collection(db, `users/${USER.uid}/documents`), orderBy("date","desc"));
-    const snap = await getDocs(q);
+    const qy = query(collection(db, `users/${USER.uid}/documents`), orderBy("date","desc"));
+    const snap = await getDocs(qy);
     const list = $("#listDocs");
     list.innerHTML = "";
     if (snap.empty){ list.innerHTML = "<em>No hay documentos</em>"; return; }
@@ -181,7 +204,7 @@ window.addEventListener("DOMContentLoaded", () => {
       el.className = "card";
       el.innerHTML = `
         <div>
-          <b>${v.type}</b> ${v.number?`— ${v.number} — `:"— "} ${v.client}
+          <b>${v.type}</b> — <b>${v.number || "s/n"}</b> — ${v.client}
           — $${fmt(v.totals?.total||0)} — ${v.date}
           — <i>${v.pay||""}</i>
           <span style="opacity:.6">(${v.status})</span>
@@ -189,6 +212,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <div class="toolbar">
           <button class="btn" data-act="dup" data-id="${d.id}">📄 Duplicar</button>
           <button class="btn btn-dark" data-act="ann" data-id="${d.id}">⛔ Anular</button>
+          <button class="btn btn-dark" data-act="del" data-id="${d.id}">🗑️ Eliminar</button>
         </div>`;
       list.appendChild(el);
     });
@@ -197,19 +221,29 @@ window.addEventListener("DOMContentLoaded", () => {
       const b = ev.target.closest("button"); if(!b) return;
       const id = b.getAttribute("data-id");
       const act= b.getAttribute("data-act");
+
       if (act==="ann"){
         if(!confirm("¿Anular este documento?")) return;
         await updateDoc(doc(db, `users/${USER.uid}/documents/${id}`), { status:"anulado", updatedAt: Date.now() });
-        await loadHistorial(); return;
+        await loadHistorial();
+        return;
+      }
+      if (act==="del"){
+        if(!confirm("🗑️ Esto eliminará el documento definitivamente. ¿Continuar?")) return;
+        await deleteDoc(doc(db, `users/${USER.uid}/documents/${id}`));
+        await loadHistorial();
+        return;
       }
       if (act==="dup"){
         const ref = doc(db, `users/${USER.uid}/documents/${id}`);
         const snap = await getDoc(ref);
         if(!snap.exists()) return;
         const src = snap.data();
+        // duplicar → asignar nuevo número automáticamente por type
+        const newNumber = await nextNumber(src.type || "FAC");
         const dupl = {
           ...src,
-          number: src.number ? `${src.number}-COPY` : "",
+          number: newNumber,
           date: isoToday(),
           status:"final",
           notes: (src.notes||"") + " (duplicado)",
@@ -217,15 +251,17 @@ window.addEventListener("DOMContentLoaded", () => {
         };
         delete dupl.id;
         await addDoc(collection(db, `users/${USER.uid}/documents`), dupl);
-        await loadHistorial(); return;
+        await loadHistorial();
+        alert(`✅ Duplicado como ${dupl.type} ${dupl.number}`);
+        return;
       }
     };
   }
 
   async function exportCSV(){
     if(!USER) return;
-    const q = query(collection(db, `users/${USER.uid}/documents`), orderBy("date","desc"));
-    const snap = await getDocs(q);
+    const qy = query(collection(db, `users/${USER.uid}/documents`), orderBy("date","desc"));
+    const snap = await getDocs(qy);
     const rows = snap.docs.map(d=>d.data());
     const headers = ["number","type","date","client","phone","pay","notes","subtotal","discPct","taxPct","discAmt","taxAmt","total","status"];
     const csv = [
@@ -244,70 +280,67 @@ window.addEventListener("DOMContentLoaded", () => {
     a.click();
   }
 
-  // -------- BACKUP / RESTAURAR --------
-  async function backupAll() {
-    if (!USER) return alert("Inicia sesión primero");
-    const q = query(collection(db, `users/${USER.uid}/documents`), orderBy("date", "desc"));
-    const snap = await getDocs(q);
-    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const blob = new Blob([JSON.stringify(docs, null, 2)], { type: "application/json" });
+  // ---------- Backup / Restaurar ----------
+  async function backupAll(){
+    if(!USER) return alert("Inicia sesión primero");
+    const profileRef = doc(db, `users/${USER.uid}/profile/main`);
+    const profileSnap = await getDoc(profileRef);
+    const profile = profileSnap.exists() ? profileSnap.data() : {};
+
+    const qy = query(collection(db, `users/${USER.uid}/documents`), orderBy("date","desc"));
+    const snap = await getDocs(qy);
+    const documents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const payload = { version:1, exportedAt:new Date().toISOString(), profile, documents };
+    const blob = new Blob([JSON.stringify(payload,null,2)], { type:"application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `FACTURA-COTIZA_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `FACTURA-COTIZA_BACKUP_${isoToday()}.json`;
     a.click();
     alert("📦 Backup exportado correctamente.");
   }
-
-  async function restoreBackup(e) {
-    if (!USER) return alert("Inicia sesión primero");
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!confirm("⚠️ Restaurará los documentos del archivo en tu cuenta. ¿Continuar?")) return;
-    const txt = await file.text();
-    let data;
-    try { data = JSON.parse(txt); } catch { return alert("Archivo JSON inválido."); }
-    if (!Array.isArray(data)) return alert("Formato incorrecto de backup.");
-    let count = 0;
-    for (const docData of data) {
-      const clean = { ...docData };
-      delete clean.id;
-      clean.restoredAt = Date.now();
-      await addDoc(collection(db, `users/${USER.uid}/documents`), clean);
-      count++;
+  async function restoreBackup(ev){
+    if(!USER) return alert("Inicia sesión primero");
+    const file = ev.target.files?.[0]; if(!file) return;
+    if(!confirm("⚠️ Se importarán datos en tu cuenta. ¿Continuar?")) return;
+    let data; try{ data = JSON.parse(await file.text()); }catch{ return alert("JSON inválido"); }
+    if(data.profile) await setDoc(doc(db, `users/${USER.uid}/profile/main`), data.profile, {merge:true});
+    if(Array.isArray(data.documents)){
+      for(const d of data.documents){
+        const clean = {...d}; delete clean.id; clean.restoredAt = Date.now();
+        await addDoc(collection(db, `users/${USER.uid}/documents`), clean);
+      }
     }
-    alert(`✅ ${count} documentos restaurados.`);
     await loadHistorial();
+    alert("✅ Restauración completa");
   }
+  $("#btnBackup")?.addEventListener("click", backupAll);
+  $("#fileRestore")?.addEventListener("change", restoreBackup);
 
-  // -------- PDF --------
+  // ---------- PDF ----------
   $("#btnPrint")?.addEventListener("click", printDoc);
 
   function printDoc(){
     const isFAC = $("#docType").value === "FAC";
-    $("#pType").textContent = isFAC ? "FACTURA" : "COTIZACIÓN";
-    $("#pBizName").textContent = CFG.companyName || "";
-    $("#pBizPhone").textContent = CFG.companyPhone ? `Tel: ${CFG.companyPhone}` : "";
-    $("#pLogo").src = isFAC ? (CFG.logoFAC||"") : (CFG.logoCOT||"");
+    $("#pDocTitle").textContent = isFAC ? "Factura" : "Cotización";
+    $("#pBizName").textContent  = (window.CFG?.companyName || "");
+    $("#pBizPhone").textContent = window.CFG?.companyPhone ? `Tel: ${window.CFG.companyPhone}` : "";
+    $("#pLogo").src             = isFAC ? (window.CFG?.logoFAC || "") : (window.CFG?.logoCOT || "");
 
-    // Meta
-    $("#pNumber").textContent = $("#docNumber").value || "—";
-    $("#pDate").textContent   = $("#docDate").value || isoToday();
-    $("#pPay").textContent    = $("#docPay").value;
-    $("#pStatus").textContent = "Final";
+    $("#pNumber").textContent   = $("#docNumber").value || "—";
+    $("#pDate").textContent     = $("#docDate").value || isoToday();
+    $("#pClientName").textContent = $("#clientName").value || "";
+    $("#pPay").textContent      = $("#docPay").value;
+    $("#pStatus").textContent   = "final";
+    $("#pNotes").textContent    = $("#docNotes").value || "";
 
-    // Cliente
-    $("#pClientName").textContent  = $("#clientName").value || "";
-    $("#pClientPhone").textContent = $("#clientPhone").value || "";
-    $("#pNotes").textContent       = $("#docNotes").value || "";
-
-    // Líneas
     const pbody = $("#pLines");
     pbody.innerHTML = "";
     $("#linesBody").querySelectorAll("tr").forEach(tr=>{
-      const item  = tr.querySelector(".item").value;
-      const desc  = tr.querySelector(".desc").value;
-      const price = parseFloat(tr.querySelector(".price").value||0);
-      const qty   = parseFloat(tr.querySelector(".qty").value||0);
+      const item  = tr.querySelector(".item").value || "";
+      const desc  = tr.querySelector(".desc").value || "";
+      const price = parseFloat(tr.querySelector(".price").value || 0);
+      const qty   = parseFloat(tr.querySelector(".qty").value || 0);
       const amt   = price*qty;
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -319,19 +352,18 @@ window.addEventListener("DOMContentLoaded", () => {
       pbody.appendChild(row);
     });
 
-    // Totales
     $("#pSubtotal").textContent = $("#tSubtotal").textContent;
     $("#pDiscAmt").textContent  = $("#tDiscAmt").textContent;
     $("#pTaxAmt").textContent   = $("#tTaxAmt").textContent;
     $("#pTotal").textContent    = $("#tTotal").textContent;
+    $("#pDiscLbl").textContent  = `Descuento (${fmt($("#tDiscPct").value||0)}%)`;
+    $("#pTaxLbl").textContent   = `IVU (${fmt($("#tTaxPct").value||0)}%)`;
 
-    // Línea de pago
-    $("#pPayLine").textContent  = $("#docPay").value;
-
-    // Pie (fecha de generación)
     $("#pGen").textContent = new Date().toLocaleString();
-
     window.print();
   }
 
+  // Botones vista
+  $("#btnReload")?.addEventListener("click", loadHistorial);
+  $("#btnCsv")?.addEventListener("click", exportCSV);
 });
