@@ -10,17 +10,12 @@ body{margin:0;font-family:"Segoe UI",Inter,system-ui,Arial,sans-serif;background
 @media(max-width:980px){.app-shell{grid-template-columns:1fr}}
 
 /* Sidebar */
-.sidebar{
-  background:var(--ink); color:#fff; padding:18px; display:flex; flex-direction:column; gap:16px;
-  border-right:2px solid var(--line);
-}
+.sidebar{background:var(--ink);color:#fff;padding:18px;display:flex;flex-direction:column;gap:16px;border-right:2px solid var(--line)}
 .brand{text-align:center}
 .brand img{width:98px;height:98px;object-fit:cover;border-radius:12px;border:2px solid var(--line);background:#0b1626;margin-bottom:8px}
 .brand h2{margin:0}
 .nav{display:grid;gap:8px}
-.navlink{
-  appearance:none;border:2px solid var(--line);border-radius:12px;background:#20324f;color:#fff;padding:10px 12px;font-weight:800;text-align:left;cursor:pointer
-}
+.navlink{appearance:none;border:2px solid var(--line);border-radius:12px;background:#20324f;color:#fff;padding:10px 12px;font-weight:800;text-align:left;cursor:pointer}
 .navlink:hover{filter:brightness(1.08)}
 .navlink.active{background:var(--gold);color:#222}
 
@@ -71,25 +66,46 @@ input,select,textarea{border:2px solid var(--line);border-radius:10px;padding:10
   #sidebar.open{transform:translateX(0)}
 }
 
-/* PRINT (PDF profesional) */
+/* ====== PDF (formato Oasis) ====== */
 #printArea{display:none}
 @media print{
+  :root{--inkP:#111;--muted:#666;--lineP:#cfcfcf}
   body *{display:none !important}
-  #printArea, #printArea *{display:block !important}
-  #printArea{padding:0;margin:0}
-  .print-card{font-family:"Segoe UI",Arial, sans-serif; color:#000; margin:0; padding:16mm}
-  @page{size: A4; margin: 12mm}
-  .p-header{display:flex;justify-content:space-between;gap:16px;margin-bottom:10mm}
-  .p-brand{display:flex;gap:12px;align-items:center}
-  .p-logo{width:90px;height:90px;object-fit:cover;border:1px solid #888;border-radius:6px}
-  .p-biz h2{margin:0 0 4px 0}
-  .p-docmeta{font-size:.95rem;line-height:1.5}
-  .p-client{margin:8mm 0}
-  .p-table{width:100%;border-collapse:collapse}
-  .p-table th,.p-table td{border:1px solid #999;padding:6px}
-  .p-table th{background:#f1f1f1}
-  .p-totals{margin-top:8mm;display:grid;gap:6px;max-width:280px;margin-left:auto}
-  .p-totals .total{font-size:1.1rem}
-  .p-totals .payline{margin-top:6px}
-  .p-footer{margin-top:10mm;font-size:.85rem;color:#333;display:flex;justify-content:space-between;border-top:1px solid #ccc;padding-top:6px}
+  #printArea, #printArea *{display:block !important; color:var(--inkP)}
+  #printArea{margin:0;padding:0}
+  @page{size:A4; margin:14mm}
+
+  .sheet{font-family:"Segoe UI",Arial,sans-serif; font-size:11.5pt; line-height:1.35}
+
+  .head{display:flex; justify-content:space-between; gap:16px; margin-bottom:8mm}
+  .meta h2{margin:0 0 2mm 0; font-size:15pt}
+  .meta p{margin:1.2mm 0}
+  .brand{display:flex; align-items:center; gap:10px}
+  .logo{width:72px; height:72px; object-fit:cover; border:1px solid #bbb; border-radius:8px}
+  .biz h3{margin:0 0 2px 0; font-size:14pt}
+  .muted{color:var(--muted)}
+
+  .items{width:100%; border-collapse:collapse; margin-top:2mm}
+  .items th,.items td{border:1px solid var(--lineP); padding:6px}
+  .items th{background:#f4f4f4}
+  .items .right{text-align:right}
+
+  .totals{width:78mm; margin-top:6mm; margin-left:auto}
+  .totals table{width:100%; border-collapse:collapse}
+  .totals td{border:1px solid var(--lineP); padding:6px}
+  .totals .right{text-align:right}
+  .totals .total td{font-weight:700; background:#f9f9f9}
+
+  .notes{margin-top:8mm}
+  .notes p{margin:2mm 0}
+
+  .foot{
+    margin-top:12mm; font-size:10pt; color:var(--muted);
+    display:flex; justify-content:space-between; border-top:1px solid var(--lineP); padding-top:4mm
+  }
+
+  /* Números de página (algunos navegadores solo muestran la actual) */
+  @page{counter-increment: page}
+  .pageNumber:after{content: counter(page);}
+  .totalPages:after{content: counters(pages,"");}
 }
