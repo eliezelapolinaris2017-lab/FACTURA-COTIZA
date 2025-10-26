@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FACTURA-COTIZA</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="app-shell">
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
       <div class="brand">
-        <img id="brandLogo" src="assets/logo-placeholder.png" alt="Logo">
+        <img id="brandLogo" src="assets/logo-placeholder.png" alt="Logo" />
         <h2>FACTURA-COTIZA</h2>
       </div>
 
@@ -41,10 +41,11 @@
       <!-- NUEVO -->
       <section id="view-nuevo" class="view visible">
         <h2>🧾 Nueva Factura o Cotización</h2>
+
         <form id="formDoc" class="card">
           <div class="grid">
             <label>Número (opcional)
-              <input id="docNumber" placeholder="Ej: FAC-001 o COT-001">
+              <input id="docNumber" placeholder="Ej: FAC-2 o COT-5">
             </label>
             <label>Tipo
               <select id="docType">
@@ -72,7 +73,7 @@
               </select>
             </label>
             <label>Notas
-              <input type="text" id="docNotes" placeholder="Condiciones, notas, etc.">
+              <input type="text" id="docNotes" placeholder="Condiciones, garantías, etc.">
             </label>
           </div>
 
@@ -163,54 +164,67 @@
     </main>
   </div>
 
-  <!-- Área imprimible (PDF profesional) -->
+  <!-- ====== PLANTILLA PDF (formato Oasis) ====== -->
   <section id="printArea">
-    <div class="print-card">
-      <div class="p-header">
-        <div class="p-brand">
-          <img id="pLogo" class="p-logo" />
-          <div class="p-biz">
-            <h2 id="pBizName">Empresa</h2>
-            <div id="pBizPhone">Tel: —</div>
+    <div class="sheet">
+      <header class="head">
+        <!-- Izquierda: metadatos -->
+        <div class="meta">
+          <h2 id="pDocTitle">Factura</h2>
+          <p><b>Número:</b> <span id="pNumber">—</span></p>
+          <p><b>Fecha:</b> <span id="pDate">—</span></p>
+          <p><b>Cliente:</b> <span id="pClientName">—</span></p>
+          <p><b>Pago:</b> <span id="pPay">—</span></p>
+          <p><b>Estado:</b> <span id="pStatus">final</span></p>
+        </div>
+
+        <!-- Derecha: logo + negocio -->
+        <div class="brand">
+          <img id="pLogo" class="logo" alt="">
+          <div class="biz">
+            <h3 id="pBizName">Nombre del Negocio</h3>
+            <div id="pBizPhone" class="muted">Tel: —</div>
           </div>
         </div>
-        <div class="p-docmeta">
-          <div><b id="pType">FACTURA</b></div>
-          <div><b>Número:</b> <span id="pNumber">—</span></div>
-          <div><b>Fecha:</b> <span id="pDate">—</span></div>
-          <div><b>Pago:</b> <span id="pPay">—</span></div>
-          <div><b>Estado:</b> <span id="pStatus">Final</span></div>
-        </div>
-      </div>
+      </header>
 
-      <div class="p-client">
-        <div><b>Cliente:</b> <span id="pClientName">—</span></div>
-        <div><b>Teléfono:</b> <span id="pClientPhone">—</span></div>
-        <div><b>Notas:</b> <span id="pNotes">—</span></div>
-      </div>
-
-      <table class="p-table">
+      <!-- Tabla ítems -->
+      <table class="items">
         <thead>
           <tr>
-            <th>Ítem</th><th>Descripción</th>
-            <th class="right">Precio</th><th class="right">Cant.</th><th class="right">Importe</th>
+            <th>Ítem</th>
+            <th>Detalle</th>
+            <th class="right">Precio</th>
+            <th class="right">Cant.</th>
+            <th class="right">Importe</th>
           </tr>
         </thead>
         <tbody id="pLines"></tbody>
       </table>
 
-      <div class="p-totals">
-        <div><span>Subtotal</span><b id="pSubtotal">$0.00</b></div>
-        <div><span>Descuento</span><b id="pDiscAmt">$0.00</b></div>
-        <div><span>Impuesto</span><b id="pTaxAmt">$0.00</b></div>
-        <div class="total"><span>Total</span><b id="pTotal">$0.00</b></div>
-        <div class="payline"><b>Forma de pago:</b> <span id="pPayLine">—</span></div>
-      </div>
+      <!-- Totales caja derecha -->
+      <section class="totals">
+        <table>
+          <tbody>
+            <tr><td>Subtotal</td><td class="right" id="pSubtotal">$0.00</td></tr>
+            <tr><td id="pDiscLbl">Descuento (0%)</td><td class="right" id="pDiscAmt">$0.00</td></tr>
+            <tr><td id="pTaxLbl">IVU (0%)</td><td class="right" id="pTaxAmt">$0.00</td></tr>
+            <tr class="total"><td>Total</td><td class="right" id="pTotal">$0.00</td></tr>
+          </tbody>
+        </table>
+      </section>
 
-      <div class="p-footer">
-        <div>Generado por FACTURA-COTIZA</div>
-        <div id="pGen">—</div>
-      </div>
+      <!-- Notas -->
+      <section class="notes">
+        <p><b>Notas:</b></p>
+        <p id="pNotes">—</p>
+      </section>
+
+      <!-- Pie -->
+      <footer class="foot">
+        <div>https://eliezelapolinaris2017-lab.github.io/FACTURA-COTIZA/</div>
+        <div><span id="pGen">—</span> · Página <span class="pageNumber"></span> de <span class="totalPages"></span></div>
+      </footer>
     </div>
   </section>
 
