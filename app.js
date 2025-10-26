@@ -1,4 +1,3 @@
-// ==================== FACTURA-COTIZA — App completa ====================
 import { auth, db, login, logout, onUser } from "./firebase-init.js";
 import {
   collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, updateDoc
@@ -9,18 +8,14 @@ window.addEventListener("DOMContentLoaded", () => {
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const fmt = n => Number(n||0).toFixed(2);
-  const isoToday = () => {
-    const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
-    return d.toISOString().slice(0,10);
-  };
+  const isoToday = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
   const toBase64 = f => new Promise((res,rej)=>{ if(!f) return res(""); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
   const csvCell = v => { if(v==null) return ""; const s=String(v).replace(/"/g,'""'); return /[",\n]/.test(s)?`"${s}"`:s; };
 
-  // Sidebar toggle (móvil)
+  // Sidebar colapsable
   const sidebar = $("#sidebar");
   $("#btnToggle")?.addEventListener("click", ()=> sidebar.classList.toggle("open"));
-  // Cerrar sidebar al cambiar vista (móvil)
-  $$(".navlink").forEach(b => b.addEventListener("click", ()=> sidebar.classList.remove("open")));
+  $$(".navlink").forEach(b=> b.addEventListener("click", ()=> sidebar.classList.remove("open")));
 
   // Navegación
   function showView(id){
@@ -28,7 +23,7 @@ window.addEventListener("DOMContentLoaded", () => {
     $$(".view").forEach(v=> v.classList.remove("visible"));
     $(`#view-${id}`).classList.add("visible");
   }
-  $$(".navlink").forEach(b => b.addEventListener("click", ()=> showView(b.dataset.nav)));
+  $$(".navlink").forEach(b=> b.addEventListener("click", ()=> showView(b.dataset.nav)));
 
   // Estado
   let USER = null;
@@ -41,16 +36,16 @@ window.addEventListener("DOMContentLoaded", () => {
   onUser(async u=>{
     USER = u || null;
     if(!u){
-      $("#authState").textContent = "Sin sesión";
-      $("#uid").textContent = "—";
-      $("#btnLogin").style.display = "";
-      $("#btnLogout").style.display = "none";
+      $("#authState").textContent="Sin sesión";
+      $("#uid").textContent="—";
+      $("#btnLogin").style.display="";
+      $("#btnLogout").style.display="none";
       return;
     }
-    $("#authState").textContent = "Conectado";
-    $("#uid").textContent = u.uid;
-    $("#btnLogin").style.display = "none";
-    $("#btnLogout").style.display = "";
+    $("#authState").textContent="Conectado";
+    $("#uid").textContent=u.uid;
+    $("#btnLogin").style.display="none";
+    $("#btnLogout").style.display="";
     await loadConfig();
     initNuevo();
     await loadHistorial();
@@ -85,11 +80,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // -------- NUEVO DOCUMENTO --------
   function initNuevo(){
-    // fecha hoy
-    const d = isoToday();
-    $("#docDate").value = d;
-
-    // líneas
+    $("#docDate").value = isoToday();
     const tbody = $("#linesBody");
     const addLine = ()=>{
       const tr = document.createElement("tr");
@@ -107,11 +98,9 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#btnAddLine").onclick = addLine;
     if(!tbody.children.length) addLine();
 
-    // totales
     $("#tDiscPct").addEventListener("input", calcTotals);
     $("#tTaxPct").addEventListener("input", calcTotals);
 
-    // acciones
     $("#formDoc").addEventListener("submit", saveDoc);
     $("#btnPrint").addEventListener("click", printDoc);
   }
@@ -140,12 +129,14 @@ window.addEventListener("DOMContentLoaded", () => {
     if(!USER) return alert("Inicia sesión primero");
 
     const docData = {
-      type: $("#docType").value, // FAC | COT
-      date: $("#docDate").value || isoToday(),
+      number: $("#docNumber").value.trim() || "",               // Número editable
+      type:   $("#docType").value,                              // FAC | COT
+      date:   $("#docDate").value || isoToday(),
       client: $("#clientName").value.trim(),
-      phone: $("#clientPhone").value.trim(),
-      notes: $("#docNotes").value.trim(),
-      lines: [...$("#linesBody").querySelectorAll("tr")].map(tr=>({
+      phone:  $("#clientPhone").value.trim(),
+      pay:    $("#docPay").value,
+      notes:  $("#docNotes").value.trim(),
+      lines:  [...$("#linesBody").querySelectorAll("tr")].map(tr=>({
         item: tr.querySelector(".item").value,
         desc: tr.querySelector(".desc").value,
         price: parseFloat(tr.querySelector(".price").value||0),
@@ -153,11 +144,11 @@ window.addEventListener("DOMContentLoaded", () => {
       })),
       totals: {
         subtotal: parseFloat($("#tSubtotal").textContent.replace("$",""))||0,
-        discPct: parseFloat($("#tDiscPct").value||0),
-        taxPct:  parseFloat($("#tTaxPct").value||0),
-        discAmt: parseFloat($("#tDiscAmt").textContent.replace("$",""))||0,
-        taxAmt:  parseFloat($("#tTaxAmt").textContent.replace("$",""))||0,
-        total:   parseFloat($("#tTotal").textContent.replace("$",""))||0
+        discPct:  parseFloat($("#tDiscPct").value||0),
+        taxPct:   parseFloat($("#tTaxPct").value||0),
+        discAmt:  parseFloat($("#tDiscAmt").textContent.replace("$",""))||0,
+        taxAmt:   parseFloat($("#tTaxAmt").textContent.replace("$",""))||0,
+        total:    parseFloat($("#tTotal").textContent.replace("$",""))||0
       },
       status: "final",
       createdAt: Date.now(),
@@ -173,6 +164,8 @@ window.addEventListener("DOMContentLoaded", () => {
   // -------- HISTORIAL --------
   $("#btnReload")?.addEventListener("click", loadHistorial);
   $("#btnCsv")?.addEventListener("click", exportCSV);
+  $("#btnBackup")?.addEventListener("click", backupAll);
+  $("#fileRestore")?.addEventListener("change", restoreBackup);
 
   async function loadHistorial(){
     if(!USER) return;
@@ -187,7 +180,12 @@ window.addEventListener("DOMContentLoaded", () => {
       const el = document.createElement("div");
       el.className = "card";
       el.innerHTML = `
-        <div><b>${v.type}</b> — ${v.client} — $${fmt(v.totals?.total||0)} — ${v.date} <span style="opacity:.6">(${v.status})</span></div>
+        <div>
+          <b>${v.type}</b> ${v.number?`— ${v.number} — `:"— "} ${v.client}
+          — $${fmt(v.totals?.total||0)} — ${v.date}
+          — <i>${v.pay||""}</i>
+          <span style="opacity:.6">(${v.status})</span>
+        </div>
         <div class="toolbar">
           <button class="btn" data-act="dup" data-id="${d.id}">📄 Duplicar</button>
           <button class="btn btn-dark" data-act="ann" data-id="${d.id}">⛔ Anular</button>
@@ -195,7 +193,6 @@ window.addEventListener("DOMContentLoaded", () => {
       list.appendChild(el);
     });
 
-    // delegación
     list.onclick = async (ev)=>{
       const b = ev.target.closest("button"); if(!b) return;
       const id = b.getAttribute("data-id");
@@ -206,13 +203,13 @@ window.addEventListener("DOMContentLoaded", () => {
         await loadHistorial(); return;
       }
       if (act==="dup"){
-        // cargar original
         const ref = doc(db, `users/${USER.uid}/documents/${id}`);
         const snap = await getDoc(ref);
         if(!snap.exists()) return;
         const src = snap.data();
         const dupl = {
           ...src,
+          number: src.number ? `${src.number}-COPY` : "",
           date: isoToday(),
           status:"final",
           notes: (src.notes||"") + " (duplicado)",
@@ -230,11 +227,11 @@ window.addEventListener("DOMContentLoaded", () => {
     const q = query(collection(db, `users/${USER.uid}/documents`), orderBy("date","desc"));
     const snap = await getDocs(q);
     const rows = snap.docs.map(d=>d.data());
-    const headers = ["type","date","client","phone","notes","subtotal","discPct","taxPct","discAmt","taxAmt","total","status"];
+    const headers = ["number","type","date","client","phone","pay","notes","subtotal","discPct","taxPct","discAmt","taxAmt","total","status"];
     const csv = [
       headers.join(","),
       ...rows.map(r=>[
-        r.type, r.date, r.client, r.phone||"", (r.notes||"").replace(/\n/g," "),
+        r.number||"", r.type||"", r.date||"", r.client||"", r.phone||"", r.pay||"", (r.notes||"").replace(/\n/g," "),
         r.totals?.subtotal||0, r.totals?.discPct||0, r.totals?.taxPct||0,
         r.totals?.discAmt||0, r.totals?.taxAmt||0, r.totals?.total||0,
         r.status||""
@@ -247,17 +244,56 @@ window.addEventListener("DOMContentLoaded", () => {
     a.click();
   }
 
+  // -------- BACKUP / RESTAURAR --------
+  async function backupAll() {
+    if (!USER) return alert("Inicia sesión primero");
+    const q = query(collection(db, `users/${USER.uid}/documents`), orderBy("date", "desc"));
+    const snap = await getDocs(q);
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const blob = new Blob([JSON.stringify(docs, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `FACTURA-COTIZA_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    alert("📦 Backup exportado correctamente.");
+  }
+
+  async function restoreBackup(e) {
+    if (!USER) return alert("Inicia sesión primero");
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!confirm("⚠️ Restaurará los documentos del archivo en tu cuenta. ¿Continuar?")) return;
+    const txt = await file.text();
+    let data;
+    try { data = JSON.parse(txt); } catch { return alert("Archivo JSON inválido."); }
+    if (!Array.isArray(data)) return alert("Formato incorrecto de backup.");
+    let count = 0;
+    for (const docData of data) {
+      const clean = { ...docData };
+      delete clean.id;
+      clean.restoredAt = Date.now();
+      await addDoc(collection(db, `users/${USER.uid}/documents`), clean);
+      count++;
+    }
+    alert(`✅ ${count} documentos restaurados.`);
+    await loadHistorial();
+  }
+
   // -------- PDF --------
   $("#btnPrint")?.addEventListener("click", printDoc);
 
   function printDoc(){
-    // Encabezado
     const isFAC = $("#docType").value === "FAC";
     $("#pType").textContent = isFAC ? "FACTURA" : "COTIZACIÓN";
     $("#pBizName").textContent = CFG.companyName || "";
     $("#pBizPhone").textContent = CFG.companyPhone ? `Tel: ${CFG.companyPhone}` : "";
-    $("#pDate").textContent    = "Fecha: " + ($("#docDate").value || isoToday());
-    $("#pLogo").src            = isFAC ? (CFG.logoFAC||"") : (CFG.logoCOT||"");
+    $("#pLogo").src = isFAC ? (CFG.logoFAC||"") : (CFG.logoCOT||"");
+
+    // Meta
+    $("#pNumber").textContent = $("#docNumber").value || "—";
+    $("#pDate").textContent   = $("#docDate").value || isoToday();
+    $("#pPay").textContent    = $("#docPay").value;
+    $("#pStatus").textContent = "Final";
 
     // Cliente
     $("#pClientName").textContent  = $("#clientName").value || "";
@@ -289,7 +325,12 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#pTaxAmt").textContent   = $("#tTaxAmt").textContent;
     $("#pTotal").textContent    = $("#tTotal").textContent;
 
-    // Mostrar plantilla de impresión
+    // Línea de pago
+    $("#pPayLine").textContent  = $("#docPay").value;
+
+    // Pie (fecha de generación)
+    $("#pGen").textContent = new Date().toLocaleString();
+
     window.print();
   }
 
