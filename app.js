@@ -88,7 +88,7 @@ window.addEventListener("DOMContentLoaded", () => {
       tx.set(ctrRef, { [type]: n }, { merge:true });
       return n;
     });
-    return `${type}-${num}`; // FAC-2, COT-5 ...
+    return `${type}-${num}`;
   }
 
   // ---------- Nuevo documento ----------
@@ -141,14 +141,13 @@ window.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     if(!USER) return alert("Inicia sesión primero");
 
-    // número: si está vacío → autoincremento por tipo
     let number = $("#docNumber").value.trim();
     const type = $("#docType").value;
     if(!number) number = await nextNumber(type);
 
     const docData = {
       number,
-      type,                                      // FAC | COT
+      type,
       date:   $("#docDate").value || isoToday(),
       client: $("#clientName").value.trim(),
       phone:  $("#clientPhone").value.trim(),
@@ -175,7 +174,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     await addDoc(collection(db, `users/${USER.uid}/documents`), docData);
 
-    // limpiar y refrescar automáticamente
+    // limpiar y refrescar
     $("#formDoc").reset();
     $("#linesBody").innerHTML="";
     initNuevo();
@@ -239,7 +238,6 @@ window.addEventListener("DOMContentLoaded", () => {
         const snap = await getDoc(ref);
         if(!snap.exists()) return;
         const src = snap.data();
-        // duplicar → asignar nuevo número automáticamente por type
         const newNumber = await nextNumber(src.type || "FAC");
         const dupl = {
           ...src,
@@ -317,7 +315,7 @@ window.addEventListener("DOMContentLoaded", () => {
   $("#btnBackup")?.addEventListener("click", backupAll);
   $("#fileRestore")?.addEventListener("change", restoreBackup);
 
-  // ---------- PDF ----------
+  // ---------- PDF (vista previa) ----------
   $("#btnPrint")?.addEventListener("click", printDoc);
 
   function printDoc(){
@@ -360,6 +358,12 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#pTaxLbl").textContent   = `IVU (${fmt($("#tTaxPct").value||0)}%)`;
 
     $("#pGen").textContent = new Date().toLocaleString();
+
+    // Compactar si hay muchas filas para evitar 2 páginas
+    const rowsCount = $("#pLines").querySelectorAll("tr").length;
+    const sheet = document.querySelector("#printArea .sheet");
+    sheet.classList.toggle("compact", rowsCount >= 8);
+
     window.print();
   }
 
