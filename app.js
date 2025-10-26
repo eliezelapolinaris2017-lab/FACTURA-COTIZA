@@ -49,6 +49,7 @@ window.addEventListener("DOMContentLoaded", () => {
     await loadConfig();
     initNuevo();
     await loadHistorial();
+    hydrateSyncUI(); // <- pinta estado de sync si lo hay
   });
 
   // ---------- Configuración ----------
@@ -74,18 +75,47 @@ window.addEventListener("DOMContentLoaded", () => {
     if(fFAC) window.CFG.logoFAC = await toBase64(fFAC);
     if(fCOT) window.CFG.logoCOT = await toBase64(fCOT);
     await setDoc(doc(db, `users/${USER.uid}/profile/main`), window.CFG, {merge:true});
+    clearSyncState(); // cambios locales invalidan el “sincronizado”
     alert("Configuración guardada ✅");
     await loadConfig();
   });
 
-  // Botón de sincronización (refresca desde Firebase)
-  $("#btnSync")?.addEventListener("click", async ()=>{
+  // ---------- Botón de sincronización (persistente con check) ----------
+  const btnSync = $("#btnSync");
+  const syncStamp = $("#syncStamp");
+  function hydrateSyncUI(){
+    const t = localStorage.getItem("fc_lastSyncTime");
+    if(t){
+      btnSync?.classList.add("synced");
+      btnSync && (btnSync.textContent = "✔️ Sincronizado");
+      syncStamp && (syncStamp.textContent = `Última sincronización: ${new Date(parseInt(t)).toLocaleString()}`);
+    }
+  }
+  function clearSyncState(){
+    localStorage.removeItem("fc_lastSyncTime");
+    btnSync?.classList.remove("synced");
+    btnSync && (btnSync.textContent = "🔁 Sincronizar con Firebase");
+    syncStamp && (syncStamp.textContent = "—");
+  }
+  btnSync?.addEventListener("click", async ()=>{
     if(!USER) return alert("Inicia sesión primero");
+    btnSync.disabled = true;
+    btnSync.textContent = "⏳ Sincronizando...";
     await loadConfig();
     await loadHistorial();
-    const t = new Date().toLocaleString();
-    $("#syncStamp").textContent = `Sincronizado: ${t}`;
-    alert("🔁 Sincronización completa");
+    const now = Date.now();
+    localStorage.setItem("fc_lastSyncTime", now);
+    btnSync.classList.add("synced");
+    btnSync.textContent = "✔️ Sincronizado";
+    syncStamp.textContent = `Última sincronización: ${new Date(now).toLocaleString()}`;
+    setTimeout(()=>{ btnSync.disabled = false; }, 600);
+  });
+
+  // Si el usuario modifica inputs de config, invalidar “sincronizado”
+  ["cfgName","cfgPhone","cfgLogoFAC","cfgLogoCOT"].forEach(id=>{
+    const el = document.getElementById(id);
+    el?.addEventListener("input", clearSyncState);
+    el?.addEventListener("change", clearSyncState);
   });
 
   // ---------- Numeración por tipo ----------
@@ -189,6 +219,7 @@ window.addEventListener("DOMContentLoaded", () => {
     initNuevo();
     await loadHistorial();
     showView("historial");
+    clearSyncState(); // guardar algo nuevo → recomienda volver a sincronizar
     alert(`✅ Guardado: ${docData.type} ${docData.number}`);
   }
 
