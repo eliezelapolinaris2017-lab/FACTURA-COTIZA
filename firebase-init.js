@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// Configuración del proyecto
+// Usa tu proyecto factura-cotiza
 const firebaseConfig = {
   apiKey: "AIzaSyCIcLnP7dAnmcx3NATjc89k437nDk_L8Dg",
   authDomain: "factura-cotiza.firebaseapp.com",
@@ -20,7 +20,6 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// API simple
 const login  = () => signInWithPopup(auth, provider);
 const logout = () => signOut(auth);
 const onUser = (cb) => onAuthStateChanged(auth, cb);
