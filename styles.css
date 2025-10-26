@@ -1,0 +1,134 @@
+:root{
+  --ink:#122032; --ink2:#1b2b44; --gold:#d4af37; --bg:#f5f6fa; --line:#000;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Segoe UI",Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#222}
+
+/* Layout */
+.app-shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+@media(max-width:980px){.app-shell{grid-template-columns:1fr}}
+
+/* Sidebar */
+.sidebar{background:var(--ink);color:#fff;padding:18px;display:flex;flex-direction:column;gap:16px;border-right:2px solid var(--line)}
+.brand{text-align:center}
+.brand img{width:98px;height:98px;object-fit:cover;border-radius:12px;border:2px solid var(--line);background:#0b1626;margin-bottom:8px}
+.brand h2{margin:0}
+.nav{display:grid;gap:8px}
+.navlink{appearance:none;border:2px solid var(--line);border-radius:12px;background:#20324f;color:#fff;padding:10px 12px;font-weight:800;text-align:left;cursor:pointer}
+.navlink:hover{filter:brightness(1.08)}
+.navlink.active{background:var(--gold);color:#222}
+
+.auth-box{margin-top:auto;border-top:2px solid var(--line);padding-top:12px}
+.auth-info{background:#14243a;border:1px solid #2b3c58;border-radius:10px;padding:8px;margin-bottom:10px}
+.auth-info p{margin:4px 0;color:#dfe7f3}
+
+.btn{border:2px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer;background:#fff}
+.btn-gold{background:var(--gold);color:#222}
+.btn-dark{background:#1b2b44;color:#fff}
+
+/* Main */
+.main{display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:12px;background:#1b2b44;color:#fff;border-bottom:2px solid var(--line);padding:12px 16px}
+.hamburger{font-size:22px;background:var(--gold);color:#222;border:2px solid var(--line);border-radius:10px;padding:6px 10px;cursor:pointer}
+.view{display:none;padding:18px}
+.view.visible{display:block}
+
+.card{background:#fff;border:2px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 8px 18px rgba(0,0,0,.06)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+
+.tablewrap{overflow:auto}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border:1px solid #cfd8e3;padding:8px}
+.table th.right,.table td.right{text-align:right}
+
+label{display:flex;flex-direction:column;gap:6px;font-weight:700}
+input,select,textarea{border:2px solid var(--line);border-radius:10px;padding:10px;font-size:1rem}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.toolbar.end{justify-content:flex-end}
+
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:12px}
+.totals b{display:inline-block;min-width:8ch;text-align:right}
+
+/* Historial */
+.list{display:grid;gap:12px}
+.list .card .toolbar{margin-top:8px}
+
+/* Config */
+.preview{width:120px;height:120px;object-fit:cover;border:2px solid var(--line);border-radius:10px;background:#fafafa}
+.logos{display:flex;gap:16px;align-items:center}
+
+/* Sidebar móvil */
+@media(max-width:980px){
+  #sidebar{position:fixed;inset:0 auto 0 0; width:80%; max-width:300px; transform:translateX(-110%); transition:transform .25s ease; z-index:1000}
+  #sidebar.open{transform:translateX(0)}
+}
+
+/* ====== PDF (A4 idéntico a tu ejemplo) ====== */
+#printArea{display:none}
+@media print{
+  :root{--inkP:#111;--muted:#666;--lineP:#cfcfcf}
+  body *{display:none !important}
+  #printArea, #printArea *{
+    display:block !important; color:var(--inkP);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #printArea{margin:0;padding:0}
+
+  /* A4 fijo */
+  @page{size: A4; margin:16mm 16mm 16mm 18mm}
+
+  .sheet{font-family:"Segoe UI",Arial,sans-serif; font-size:11pt; line-height:1.35; width:100%}
+
+  .pdf-head{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:18px; margin-bottom:10mm; page-break-inside:avoid;
+  }
+  .pdf-meta h2{margin:0 0 3mm 0; font-size:16pt}
+  .pdf-meta p{margin:1.4mm 0}
+  .pdf-brand{display:flex; align-items:center; gap:12px}
+  .pdf-logo{
+    width:76px; height:76px; object-fit:cover; border:1px solid #bdbdbd;
+    border-radius:8px; background:#fff;
+  }
+  .pdf-biz h3{margin:0 0 2px 0; font-size:15pt; font-weight:700; text-align:left}
+  .muted{color:var(--muted)}
+
+  .pdf-items{width:100%; border-collapse:collapse; page-break-inside:avoid}
+  .pdf-items th,.pdf-items td{border:1px solid var(--lineP); padding:6px 7px}
+  .pdf-items th{background:#f1f1f1; font-weight:700}
+  .right{text-align:right}
+  .pdf-items .c-item{width:26mm}
+  .pdf-items .c-detalle{width:auto}
+  .pdf-items .c-precio{width:25mm}
+  .pdf-items .c-cant{width:18mm}
+  .pdf-items .c-importe{width:30mm}
+
+  .pdf-totals{width:82mm; margin-top:8mm; margin-left:auto; page-break-inside:avoid}
+  .pdf-totals table{width:100%; border-collapse:collapse}
+  .pdf-totals td{border:1.6px solid #bdbdbd; padding:7px 8px}
+  .pdf-totals .right{text-align:right}
+  .pdf-totals .total td{font-weight:800; background:#f7f7f7}
+
+  .pdf-notes{margin-top:10mm; page-break-inside:avoid}
+  .pdf-notes p{margin:2mm 0}
+  .pdf-foot{
+    margin-top:10mm; font-size:10pt; color:var(--muted);
+    display:flex; justify-content:space-between; border-top:1px solid var(--lineP);
+    padding-top:4mm; page-break-inside:avoid
+  }
+
+  @page{counter-increment: page}
+  .pageNumber:after{content: counter(page);}
+  .totalPages:after{content: counters(pages,"");}
+}
+
+/* Modo compacto si hay muchas filas */
+@media print{
+  .sheet.compact{font-size:10.6pt; line-height:1.28}
+  .sheet.compact .pdf-logo{width:68px;height:68px}
+  .sheet.compact .pdf-totals{width:76mm}
+  .sheet.compact .pdf-items th,.sheet.compact .pdf-items td,
+  .sheet.compact .pdf-totals td{padding:5px 6px}
+}
