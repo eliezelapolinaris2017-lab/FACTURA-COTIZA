@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>FACTURA-COTIZA</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div class="app-shell">
-    <!-- Sidebar (colapsable) -->
+    <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
       <div class="brand">
-        <img id="brandLogo" src="assets/logo-placeholder.png" alt="Logo" />
+        <img id="brandLogo" src="assets/logo-placeholder.png" alt="Logo">
         <h2>FACTURA-COTIZA</h2>
       </div>
 
@@ -43,6 +43,9 @@
         <h2>🧾 Nueva Factura o Cotización</h2>
         <form id="formDoc" class="card">
           <div class="grid">
+            <label>Número (opcional)
+              <input id="docNumber" placeholder="Ej: FAC-001 o COT-001">
+            </label>
             <label>Tipo
               <select id="docType">
                 <option value="FAC">Factura</option>
@@ -57,6 +60,16 @@
             </label>
             <label>Cliente (teléfono)
               <input type="tel" id="clientPhone" placeholder="787-555-5555" inputmode="tel">
+            </label>
+            <label>Método de pago
+              <select id="docPay">
+                <option>ATH Móvil</option>
+                <option>Tarjeta</option>
+                <option>Efectivo</option>
+                <option>Cheque</option>
+                <option>PayPal</option>
+                <option>Otros</option>
+              </select>
             </label>
             <label>Notas
               <input type="text" id="docNotes" placeholder="Condiciones, notas, etc.">
@@ -107,6 +120,9 @@
         <div class="toolbar">
           <button id="btnReload" class="btn">🔄 Recargar</button>
           <button id="btnCsv" class="btn btn-gold">📤 Exportar CSV</button>
+          <button id="btnBackup" class="btn btn-gold">💾 Backup JSON</button>
+          <label class="btn btn-dark" for="fileRestore" style="cursor:pointer">📂 Restaurar</label>
+          <input type="file" id="fileRestore" accept="application/json" style="display:none">
         </div>
         <div id="listDocs" class="list"></div>
       </section>
@@ -147,16 +163,23 @@
     </main>
   </div>
 
-  <!-- Área imprimible (PDF) -->
+  <!-- Área imprimible (PDF profesional) -->
   <section id="printArea">
     <div class="print-card">
-      <div class="p-head">
-        <img id="pLogo" class="p-logo" />
-        <div class="p-meta">
-          <h2 id="pType">FACTURA</h2>
-          <div id="pBizName">Empresa</div>
-          <div id="pBizPhone">Tel: —</div>
-          <div id="pDate">Fecha: —</div>
+      <div class="p-header">
+        <div class="p-brand">
+          <img id="pLogo" class="p-logo" />
+          <div class="p-biz">
+            <h2 id="pBizName">Empresa</h2>
+            <div id="pBizPhone">Tel: —</div>
+          </div>
+        </div>
+        <div class="p-docmeta">
+          <div><b id="pType">FACTURA</b></div>
+          <div><b>Número:</b> <span id="pNumber">—</span></div>
+          <div><b>Fecha:</b> <span id="pDate">—</span></div>
+          <div><b>Pago:</b> <span id="pPay">—</span></div>
+          <div><b>Estado:</b> <span id="pStatus">Final</span></div>
         </div>
       </div>
 
@@ -181,11 +204,16 @@
         <div><span>Descuento</span><b id="pDiscAmt">$0.00</b></div>
         <div><span>Impuesto</span><b id="pTaxAmt">$0.00</b></div>
         <div class="total"><span>Total</span><b id="pTotal">$0.00</b></div>
+        <div class="payline"><b>Forma de pago:</b> <span id="pPayLine">—</span></div>
+      </div>
+
+      <div class="p-footer">
+        <div>Generado por FACTURA-COTIZA</div>
+        <div id="pGen">—</div>
       </div>
     </div>
   </section>
 
-  <!-- Scripts al final para asegurar DOM listo -->
   <script type="module" src="./firebase-init.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
