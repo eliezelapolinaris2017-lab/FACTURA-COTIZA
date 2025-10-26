@@ -67,26 +67,29 @@ input,select,textarea{border:2px solid var(--line);border-radius:10px;padding:10
 
 /* Sidebar colapsable en móvil */
 @media(max-width:980px){
-  .sidebar{position:fixed;inset:0 auto 0 0; width:80%; max-width:300px; transform:translateX(-110%); transition:transform .25s ease; z-index:1000}
-  .sidebar.open{transform:translateX(0)}
-  .main{padding-top:0}
+  #sidebar{position:fixed;inset:0 auto 0 0; width:80%; max-width:300px; transform:translateX(-110%); transition:transform .25s ease; z-index:1000}
+  #sidebar.open{transform:translateX(0)}
 }
 
-/* PRINT (PDF) */
+/* PRINT (PDF profesional) */
 #printArea{display:none}
 @media print{
   body *{display:none !important}
   #printArea, #printArea *{display:block !important}
   #printArea{padding:0;margin:0}
-  .print-card{font-family:"Segoe UI",Arial, sans-serif; color:#000; margin:0; padding:18mm}
+  .print-card{font-family:"Segoe UI",Arial, sans-serif; color:#000; margin:0; padding:16mm}
   @page{size: A4; margin: 12mm}
-  .p-head{display:flex;gap:16px;align-items:center;margin-bottom:8mm}
-  .p-logo{width:90px;height:90px;object-fit:cover}
-  .p-meta h2{margin:0 0 6px 0}
+  .p-header{display:flex;justify-content:space-between;gap:16px;margin-bottom:10mm}
+  .p-brand{display:flex;gap:12px;align-items:center}
+  .p-logo{width:90px;height:90px;object-fit:cover;border:1px solid #888;border-radius:6px}
+  .p-biz h2{margin:0 0 4px 0}
+  .p-docmeta{font-size:.95rem;line-height:1.5}
   .p-client{margin:8mm 0}
   .p-table{width:100%;border-collapse:collapse}
   .p-table th,.p-table td{border:1px solid #999;padding:6px}
   .p-table th{background:#f1f1f1}
-  .p-totals{margin-top:8mm;display:grid;gap:6px;max-width:260px;margin-left:auto}
+  .p-totals{margin-top:8mm;display:grid;gap:6px;max-width:280px;margin-left:auto}
   .p-totals .total{font-size:1.1rem}
+  .p-totals .payline{margin-top:6px}
+  .p-footer{margin-top:10mm;font-size:.85rem;color:#333;display:flex;justify-content:space-between;border-top:1px solid #ccc;padding-top:6px}
 }
