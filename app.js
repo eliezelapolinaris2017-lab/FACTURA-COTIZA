@@ -146,8 +146,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if(!number) number = await nextNumber(type);
 
     const docData = {
-      number,
-      type,
+      number, type,
       date:   $("#docDate").value || isoToday(),
       client: $("#clientName").value.trim(),
       phone:  $("#clientPhone").value.trim(),
@@ -354,15 +353,15 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#pDiscAmt").textContent  = $("#tDiscAmt").textContent;
     $("#pTaxAmt").textContent   = $("#tTaxAmt").textContent;
     $("#pTotal").textContent    = $("#tTotal").textContent;
-    $("#pDiscLbl").textContent  = `Descuento (${fmt($("#tDiscPct").value||0)}%)`;
-    $("#pTaxLbl").textContent   = `IVU (${fmt($("#tTaxPct").value||0)}%)`;
+    $("#pDiscLbl").textContent  = `Descuento (${Number($("#tDiscPct").value||0).toFixed(2)}%)`;
+    $("#pTaxLbl").textContent   = `IVU (${Number($("#tTaxPct").value||0).toFixed(2)}%)`;
 
     $("#pGen").textContent = new Date().toLocaleString();
 
-    // Compactar si hay muchas filas para evitar 2 páginas
+    // Compactar si hay muchas filas (para que no corte en 2 páginas)
     const rowsCount = $("#pLines").querySelectorAll("tr").length;
-    const sheet = document.querySelector("#printArea .sheet");
-    sheet.classList.toggle("compact", rowsCount >= 8);
+    const sheet = document.getElementById("pdfSheet");
+    sheet.classList.toggle("compact", rowsCount >= 10);
 
     window.print();
   }
