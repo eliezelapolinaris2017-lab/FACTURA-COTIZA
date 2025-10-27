@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>FACTURA-COTIZA</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header no-print">
+    <button id="btnToggle" aria-label="Menú">☰</button>
+    <div class="brand">FACTURA-COTIZA</div>
+    <div class="auth">
+      <span id="authState">Sin sesión</span>
+      <button class="btn btn-ghost" id="btnLogin">Iniciar sesión</button>
+      <button class="btn btn-dark" id="btnLogout" style="display:none">Salir</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="no-print">
+    <h3 style="margin-top:0">Menú</h3>
+    <a href="#inicio" class="navlink active" data-nav="inicio">🏠 Inicio</a>
+    <a href="#nuevo" class="navlink" data-nav="nuevo">🧾 Nuevo</a>
+    <a href="#historial" class="navlink" data-nav="historial">📚 Historial</a>
+    <a href="#config" class="navlink" data-nav="config">⚙️ Configuración</a>
+    <div class="uid">UID: <span id="uid">—</span></div>
+  </aside>
+
+  <!-- Contenido principal -->
+  <main style="max-width:1000px;margin:16px auto">
+    
+    <!-- INICIO -->
+    <section id="view-inicio" class="view visible">
+      <div class="card">
+        <h2>Bienvenido</h2>
+        <p>Administre facturas y cotizaciones. Exporte a PDF y sincronice con Firebase.</p>
+        <div class="toolbar">
+          <a class="btn" href="#nuevo" data-nav="nuevo">🧾 Nuevo</a>
+          <a class="btn" href="#historial" data-nav="historial">📚 Historial</a>
+          <a class="btn" href="#config" data-nav="config">⚙️ Configuración</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- NUEVO DOCUMENTO -->
+    <section id="view-nuevo" class="view">
+      <div class="card">
+        <h2>Nuevo documento</h2>
+        <form id="formDoc">
+          <div class="grid2">
+            <div>
+              <label>Tipo</label>
+              <select id="docType">
+                <option value="FAC">Factura (FAC)</option>
+                <option value="COT">Cotización (COT)</option>
+              </select>
+            </div>
+            <div>
+              <label>Número (se genera automático si se deja vacío)</label>
+              <input id="docNumber" placeholder="FAC-#" />
+            </div>
+            <div>
+              <label>Fecha</label>
+              <input id="docDate" type="date" />
+            </div>
+            <div>
+              <label>Método de pago</label>
+              <select id="docPay">
+                <option>ATH Móvil</option>
+                <option>Tarjeta</option>
+                <option>Efectivo</option>
+                <option>Cheque</option>
+                <option>PayPal</option>
+                <option>Otros</option>
+              </select>
+            </div>
+            <div>
+              <label>Cliente</label>
+              <input id="clientName" placeholder="Nombre del cliente" />
+            </div>
+            <div>
+              <label>Teléfono</label>
+              <input id="clientPhone" placeholder="(787) 000-0000" />
+            </div>
+            <div>
+              <label>Email</label>
+              <input id="clientEmail" type="email" placeholder="cliente@correo.com" />
+            </div>
+            <div>
+              <label>Dirección</label>
+              <input id="clientAddress" placeholder="Calle, #, Pueblo, PR" />
+            </div>
+          </div>
+
+          <h3 style="margin:14px 0 8px">Líneas</h3>
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:16%">Ítem</th>
+                  <th>Descripción</th>
+                  <th style="width:14%">Precio</th>
+                  <th style="width:12%">Cant.</th>
+                  <th style="width:14%">Importe</th>
+                  <th style="width:40px">—</th>
+                </tr>
+              </thead>
+              <tbody id="linesBody"></tbody>
+            </table>
+          </div>
+          <button class="btn" id="btnAddLine" type="button">＋ Añadir línea</button>
+
+          <div class="grid3" style="margin-top:14px">
+            <div>
+              <label>Descuento (%)</label>
+              <input id="tDiscPct" type="number" step="0.01" value="0" inputmode="decimal" />
+            </div>
+            <div>
+              <label>IVU (%)</label>
+              <input id="tTaxPct" type="number" step="0.01" value="0" inputmode="decimal" />
+            </div>
+            <div>
+              <label>Subtotal</label>
+              <div class="amount" id="tSubtotal">$0.00</div>
+            </div>
+            <div>
+              <label>Descuento</label>
+              <div class="amount" id="tDiscAmt">$0.00</div>
+            </div>
+            <div>
+              <label>Impuesto</label>
+              <div class="amount" id="tTaxAmt">$0.00</div>
+            </div>
+            <div>
+              <label>Total</label>
+              <div class="amount" id="tTotal">$0.00</div>
+            </div>
+          </div>
+
+          <label style="margin-top:12px;display:block">Garantía / Notas</label>
+          <textarea id="docNotes" placeholder="Política de garantía, condiciones, etc."></textarea>
+
+          <div class="toolbar" style="margin-top:12px">
+            <button type="submit" class="btn">💾 Guardar</button>
+            <button type="button" class="btn btn-dark" id="btnPrint">🖨️ PDF</button>
+            <button type="button" class="btn btn-ghost" id="btnShare">📲 Compartir</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="view-historial" class="view">
+      <div class="card">
+        <h2>Historial (en vivo)</h2>
+        <div id="listDocs"></div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn" id="btnCsv">⬇️ Exportar CSV</button>
+          <button class="btn btn-dark" id="btnBackup">📦 Backup JSON</button>
+          <label class="btn btn-dark" style="cursor:pointer">
+            ⬆️ Restaurar
+            <input id="fileRestore" type="file" accept="application/json" style="display:none" />
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN -->
+    <section id="view-config" class="view">
+      <div class="card">
+        <h2>Configuración</h2>
+        <form id="formCfg">
+          <div class="grid2">
+            <div>
+              <label>Nombre del negocio</label>
+              <input id="cfgName" />
+            </div>
+            <div>
+              <label>Teléfono</label>
+              <input id="cfgPhone" />
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:8px">
+            <div>
+              <label>Logo para Factura (PNG/JPG)</label>
+              <img id="prevFAC" alt="Logo FAC" style="display:block;width:120px;height:auto;margin-bottom:6px;border:2px solid #000;border-radius:8px" />
+              <input id="cfgLogoFAC" type="file" accept="image/*" />
+            </div>
+            <div>
+              <label>Logo para Cotización (PNG/JPG)</label>
+              <img id="prevCOT" alt="Logo COT" style="display:block;width:120px;height:auto;margin-bottom:6px;border:2px solid #000;border-radius:8px" />
+              <input id="cfgLogoCOT" type="file" accept="image/*" />
+            </div>
+          </div>
+          <div class="toolbar" style="margin-top:12px">
+            <button class="btn" type="submit">💾 Guardar configuración</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- PREVIEW / PRINT (sin QR ni canvas) -->
+  <div id="printContainer" class="no-screen">
+    <div id="pdfSheet" class="theme-fac">
+      <div id="pdfHeader">
+        <div id="pdfHeaderLeft">
+          <h1 id="pBizName">Nombre del Negocio</h1>
+          <p id="pBizPhone">Tel: —</p>
+          <div id="pdfInfo">
+            <p id="pDocTitle"><strong>Factura</strong></p>
+            <p><b>Número:</b> <span id="pNumber">—</span></p>
+            <p><b>Fecha:</b> <span id="pDate">—</span></p>
+            <p><b>Cliente:</b> <span id="pClientName">—</span></p>
+            <p><b>Pago:</b> <span id="pPay">—</span></p>
+            <p><b>Estado:</b> <span id="pStatus">final</span></p>
+            <p><b>Email:</b> <span id="pEmail">—</span></p>
+            <p><b>Dirección:</b> <span id="pAddress">—</span></p>
+          </div>
+        </div>
+        <div id="pdfHeaderRight">
+          <img id="pLogo" src="assets/logo-placeholder.png" alt="Logo empresa">
+        </div>
+      </div>
+
+      <h3>Detalle del servicio</h3>
+      <table id="pdfTable">
+        <thead>
+          <tr>
+            <th>Ítem</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Cant.</th>
+            <th>Importe</th>
+          </tr>
+        </thead>
+        <tbody id="pLines"></tbody>
+      </table>
+
+      <table id="pdfTotals">
+        <tbody>
+          <tr><td>Subtotal</td><td class="right" id="pSubtotal">$0.00</td></tr>
+          <tr><td id="pDiscLbl">Descuento (0%)</td><td class="right" id="pDiscAmt">$0.00</td></tr>
+          <tr><td id="pTaxLbl">IVU (0%)</td><td class="right" id="pTaxAmt">$0.00</td></tr>
+          <tr><td>Total</td><td class="right" id="pTotal">$0.00</td></tr>
+        </tbody>
+      </table>
+
+      <div id="pdfNotes">
+        <p><strong>Garantía / Notas:</strong></p>
+        <p id="pNotes">—</p>
+      </div>
+
+      <div id="pdfFooter">
+        <span id="pLink">https://eliezelapolinaris2017-lab.github.io/FACTURA-COTIZA/</span>
+        <span><span id="pGen">Generado: —</span> — Página 1 de 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="firebase-init.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
