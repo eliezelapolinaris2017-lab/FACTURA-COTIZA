@@ -68,18 +68,23 @@ table{ width:100%; border-collapse:collapse }
 th,td{ border:2px solid var(--border); padding:8px; text-align:left }
 td.right{ text-align:right }
 
-/* -------- IMPRESIÓN: SOLO PDF (A4) -------- */
-#printContainer{ display:none; }
+/* Ocultar “solo en pantalla” */
+.no-screen{ display:none; }
 
+/* -------- IMPRESIÓN: SOLO PDF (A4) -------- */
 @media print {
   @page { size: A4; margin: 12mm; }
 
-  /* Oculta todo excepto el PDF */
+  /* Oculta todo excepto el contenedor del PDF */
   body * { visibility: hidden !important; }
-  #printContainer, #printContainer * { visibility: visible !important; }
+
+  /* ¡Mostrar el PDF aunque esté oculto en pantalla! */
   #printContainer{
-    position: fixed; inset:0 auto auto 0; width:100%; background:#fff; z-index:99999;
+    display:block !important;         /* <— CLAVE: lo forzamos a mostrarse */
+    position: fixed; inset:0 auto auto 0; width:100%;
+    background:#fff; z-index:99999;
   }
+  #printContainer, #printContainer * { visibility: visible !important; }
 
   #pdfSheet{
     width:21cm; min-height:29.7cm; margin:0 auto; padding:2cm; box-sizing:border-box;
