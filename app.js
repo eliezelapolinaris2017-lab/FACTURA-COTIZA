@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Helpers
+  // Utilidades
   const $  = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const fmt = n => Number(n||0).toFixed(2);
@@ -13,7 +13,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const toBase64 = f => new Promise((res,rej)=>{ if(!f) return res(""); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
   const csvCell = v => { if(v==null) return ""; const s=String(v).replace(/"/g,'""'); return /[",\n]/.test(s)?`"${s}"`:s; };
 
-  // Navbar simple
+  // Navegación
   const sidebar = $("#sidebar");
   $("#btnToggle")?.addEventListener("click", ()=> sidebar.classList.toggle("open"));
   $$(".navlink").forEach(b=> b.addEventListener("click", (e)=>{
@@ -23,13 +23,12 @@ window.addEventListener("DOMContentLoaded", () => {
     sidebar.classList.remove("open");
     history.replaceState(null,"",`#${id}`);
   }));
-
   function showView(id){
     $$(".navlink").forEach(b=> b.classList.toggle("active", b.dataset.nav===id));
     $$(".view").forEach(v=> v.classList.remove("visible"));
     $(`#view-${id}`).classList.add("visible");
   }
-  // Deep-link inicial
+  // Deep link inicial
   (()=>{
     const hash = (location.hash||"#inicio").replace("#","");
     const link = $(`.navlink[data-nav="${hash}"]`);
@@ -64,7 +63,6 @@ window.addEventListener("DOMContentLoaded", () => {
     startConfigLive();
     initNuevo();
     startHistorialLive();
-    hydrateSyncUI();
   });
 
   // Config en vivo
@@ -91,35 +89,10 @@ window.addEventListener("DOMContentLoaded", () => {
     if(f1) data.logoFAC = await toBase64(f1);
     if(f2) data.logoCOT = await toBase64(f2);
     await setDoc(doc(db, `users/${USER.uid}/profile/main`), data, {merge:true});
-    clearSyncState();
     alert("Configuración guardada ✅");
   });
 
-  // Botón Sync (estético/registro de hora)
-  const btnSync = $("#btnSync");
-  const syncStamp = $("#syncStamp");
-  function hydrateSyncUI(){
-    const t = localStorage.getItem("fc_lastSyncTime");
-    if(t){ btnSync.classList.add("synced"); btnSync.textContent="✔️ Sincronizado"; syncStamp.textContent=`Última sincronización: ${new Date(+t).toLocaleString()}`; }
-  }
-  function clearSyncState(){
-    localStorage.removeItem("fc_lastSyncTime");
-    btnSync.classList.remove("synced");
-    btnSync.textContent="🔁 Sincronizar con Firebase";
-    syncStamp.textContent="—";
-  }
-  btnSync.addEventListener("click", ()=>{
-    if(!USER) return alert("Inicia sesión primero");
-    const now=Date.now(); localStorage.setItem("fc_lastSyncTime", now);
-    hydrateSyncUI();
-  });
-  ["cfgName","cfgPhone","cfgLogoFAC","cfgLogoCOT"].forEach(id=>{
-    const el=document.getElementById(id);
-    el?.addEventListener("input", clearSyncState);
-    el?.addEventListener("change", clearSyncState);
-  });
-
-  // Numeración
+  // Numeración por tipo
   async function nextNumber(type){
     const ctrRef = doc(db, `users/${USER.uid}/profile/counters`);
     const num = await runTransaction(db, async (tx)=>{
@@ -132,7 +105,7 @@ window.addEventListener("DOMContentLoaded", () => {
     return `${type}-${num}`;
   }
 
-  // Nuevo doc
+  // Nuevo documento
   function initNuevo(){
     $("#docDate").value = isoToday();
     const tbody = $("#linesBody");
@@ -214,11 +187,10 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#formDoc").reset();
     $("#linesBody").innerHTML="";
     initNuevo();
-    clearSyncState();
     alert(`✅ Guardado: ${data.type} ${data.number}`);
   }
 
-  // Historial (real time)
+  // Historial en vivo
   function startHistorialLive(){
     if(!USER) return;
     if (unsubHist) { unsubHist(); unsubHist=null; }
@@ -272,7 +244,7 @@ window.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // CSV / Backup
+  // CSV
   $("#btnCsv").addEventListener("click", exportCSV);
   async function exportCSV(){
     if(!USER) return;
@@ -293,6 +265,7 @@ window.addEventListener("DOMContentLoaded", () => {
     a.href=URL.createObjectURL(blob); a.download=`FACTURA-COTIZA_${isoToday()}.csv`; a.click();
   }
 
+  // Backup / Restore
   $("#btnBackup").addEventListener("click", backupAll);
   $("#fileRestore").addEventListener("change", restoreBackup);
   async function backupAll(){
@@ -322,7 +295,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("✅ Restauración completa");
   }
 
-  // ---------- Impresión (FAC/COT) ----------
+  // -------- Impresión (FAC/COT) --------
   function applyPdfTheme(type){
     const sheet=$("#pdfSheet");
     sheet.classList.remove("theme-fac","theme-cot");
