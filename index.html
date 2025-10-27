@@ -85,6 +85,14 @@
               <label>Teléfono</label>
               <input id="clientPhone" placeholder="(787) 000-0000" />
             </div>
+            <div>
+              <label>Email</label>
+              <input id="clientEmail" type="email" placeholder="cliente@correo.com" />
+            </div>
+            <div>
+              <label>Dirección</label>
+              <input id="clientAddress" placeholder="Calle, #, Pueblo, PR" />
+            </div>
           </div>
 
           <h3 style="margin:14px 0 8px">Líneas</h3>
@@ -138,6 +146,7 @@
           <div class="toolbar" style="margin-top:12px">
             <button type="submit" class="btn">💾 Guardar</button>
             <button type="button" class="btn btn-dark" id="btnPrint">🖨️ PDF</button>
+            <button type="button" class="btn btn-ghost" id="btnShare">📲 Compartir</button>
           </div>
         </form>
       </div>
@@ -209,10 +218,13 @@
             <p><b>Cliente:</b> <span id="pClientName">—</span></p>
             <p><b>Pago:</b> <span id="pPay">—</span></p>
             <p><b>Estado:</b> <span id="pStatus">final</span></p>
+            <p><b>Email:</b> <span id="pEmail">—</span></p>
+            <p><b>Dirección:</b> <span id="pAddress">—</span></p>
           </div>
         </div>
         <div id="pdfHeaderRight">
           <img id="pLogo" src="assets/logo-placeholder.png" alt="Logo empresa">
+          <canvas id="pSeal" width="110" height="110" style="display:block;margin-top:8px;border-radius:8px;border:1px solid #bbb"></canvas>
         </div>
       </div>
 
