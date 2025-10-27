@@ -1,3 +1,5 @@
+// app.js (COMPLETO)
+
 import { auth, db, login, logout, onUser } from "./firebase-init.js";
 import {
   collection, addDoc, getDocs, query, orderBy, doc, getDoc, setDoc, updateDoc,
@@ -5,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Utilidades
+  // -------- Utilidades --------
   const $  = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const fmt = n => Number(n||0).toFixed(2);
@@ -13,39 +15,52 @@ window.addEventListener("DOMContentLoaded", () => {
   const toBase64 = f => new Promise((res,rej)=>{ if(!f) return res(""); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
   const csvCell = v => { if(v==null) return ""; const s=String(v).replace(/"/g,'""'); return /[",\n]/.test(s)?`"${s}"`:s; };
 
-  // Navegación
+  // -------- Navegación --------
   const sidebar = $("#sidebar");
   $("#btnToggle")?.addEventListener("click", ()=> sidebar.classList.toggle("open"));
-  $$(".navlink").forEach(b=> b.addEventListener("click", (e)=>{
-    e.preventDefault();
-    const id = b.dataset.nav;
+
+  function showView(id){
+    // activar clases
+    $$(".view").forEach(v=> v.classList.remove("visible"));
+    const view = $(`#view-${id}`) || $("#view-inicio");
+    view.classList.add("visible");
+    // marcar enlace activo del sidebar
+    $$(".navlink").forEach(a=> a.classList.toggle("active", a.dataset.nav===id));
+  }
+
+  function syncFromHash(){
+    const hash = (location.hash||"#inicio").replace("#","");
+    showView(hash);
+  }
+
+  // Escuchar clic en CUALQUIER elemento con data-nav (sidebar + botones de inicio)
+  document.body.addEventListener("click", (ev)=>{
+    const el = ev.target.closest("[data-nav]");
+    if(!el) return;
+    ev.preventDefault();
+    const id = el.getAttribute("data-nav");
+    history.replaceState(null,"",`#${id}`);
     showView(id);
     sidebar.classList.remove("open");
-    history.replaceState(null,"",`#${id}`);
-  }));
-  function showView(id){
-    $$(".navlink").forEach(b=> b.classList.toggle("active", b.dataset.nav===id));
-    $$(".view").forEach(v=> v.classList.remove("visible"));
-    $(`#view-${id}`).classList.add("visible");
-  }
-  (()=>{
-    const hash = (location.hash||"#inicio").replace("#","");
-    const link = $(`.navlink[data-nav="${hash}"]`);
-    if(link) link.click();
-  })();
+  });
 
-  // Estado
+  // Soporte para back/forward del navegador
+  window.addEventListener("hashchange", syncFromHash);
+  // Vista inicial
+  syncFromHash();
+
+  // -------- Estado global --------
   let USER = null;
   window.CFG = { companyName:"", companyPhone:"", logoFAC:"", logoCOT:"" };
   let unsubHist = null, unsubCfg=null;
 
-  // Config offline (cache)
+  // Cache local de config
   const LS_CFG_KEY = "fc.cfg.v1";
   const saveCfgLocal = cfg => localStorage.setItem(LS_CFG_KEY, JSON.stringify(cfg));
   const getCfgLocal = () => { try{ return JSON.parse(localStorage.getItem(LS_CFG_KEY)||"{}"); }catch{ return {}; } };
   Object.assign(window.CFG, getCfgLocal());
 
-  // Auth
+  // -------- Autenticación --------
   $("#btnLogin").addEventListener("click", ()=> login().catch(e=>alert(e.message)));
   $("#btnLogout").addEventListener("click", ()=> logout());
 
@@ -70,7 +85,7 @@ window.addEventListener("DOMContentLoaded", () => {
     startHistorialLive();
   });
 
-  // Config en vivo
+  // -------- Configuración en vivo --------
   function startConfigLive(){
     if(!USER) return;
     const cfgRef = doc(db, `users/${USER.uid}/profile/main`);
@@ -99,7 +114,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("Configuración guardada ✅");
   });
 
-  // Numeración por tipo
+  // -------- Numeración por tipo --------
   async function nextNumber(type){
     const ctrRef = doc(db, `users/${USER.uid}/profile/counters`);
     const num = await runTransaction(db, async (tx)=>{
@@ -112,7 +127,7 @@ window.addEventListener("DOMContentLoaded", () => {
     return `${type}-${num}`;
   }
 
-  // Nuevo documento
+  // -------- Nuevo documento --------
   function initNuevo(){
     $("#docDate").value = isoToday();
     const tbody = $("#linesBody");
@@ -200,7 +215,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert(`✅ Guardado: ${data.type} ${data.number}`);
   }
 
-  // Historial en vivo
+  // -------- Historial (en vivo) --------
   function startHistorialLive(){
     if(!USER) return;
     if (unsubHist) { unsubHist(); unsubHist=null; }
@@ -254,7 +269,7 @@ window.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // CSV
+  // -------- Exportar CSV --------
   $("#btnCsv").addEventListener("click", exportCSV);
   async function exportCSV(){
     if(!USER) return;
@@ -275,9 +290,10 @@ window.addEventListener("DOMContentLoaded", () => {
     a.href=URL.createObjectURL(blob); a.download=`FACTURA-COTIZA_${isoToday()}.csv`; a.click();
   }
 
-  // Backup / Restore
+  // -------- Backup / Restore --------
   $("#btnBackup").addEventListener("click", backupAll);
   $("#fileRestore").addEventListener("change", restoreBackup);
+
   async function backupAll(){
     if(!USER) return alert("Inicia sesión primero");
     const profileSnap=await getDoc(doc(db,`users/${USER.uid}/profile/main`));
@@ -290,6 +306,7 @@ window.addEventListener("DOMContentLoaded", () => {
     a.href=URL.createObjectURL(blob); a.download=`FACTURA-COTIZA_BACKUP_${isoToday()}.json`; a.click();
     alert("📦 Backup exportado.");
   }
+
   async function restoreBackup(ev){
     if(!USER) return alert("Inicia sesión primero");
     const file=ev.target.files?.[0]; if(!file) return;
@@ -305,7 +322,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("✅ Restauración completa");
   }
 
-  // Impresión (sin QR/sello)
+  // -------- Impresión --------
   function applyPdfTheme(type){
     const sheet=$("#pdfSheet");
     sheet.classList.remove("theme-fac","theme-cot");
@@ -369,7 +386,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   $("#btnPrint").addEventListener("click", printDoc);
 
-  // Compartir
+  // -------- Compartir --------
   async function shareDoc(){
     try{
       const subject = `${$("#docType").value} ${$("#docNumber").value || ""} - ${$("#clientName").value || ""}`.trim();
