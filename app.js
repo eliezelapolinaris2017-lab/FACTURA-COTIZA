@@ -351,6 +351,10 @@ window.addEventListener("DOMContentLoaded", () => {
     sheet.classList.toggle("compact", rowsCount>=10);
   }
 
-  function printDoc(){ renderPdfFromForm(); window.print(); }
+  // IMPORTANTE: dar un pequeño tiempo para que el DOM del PDF se pinte
+  function printDoc(){
+    renderPdfFromForm();
+    setTimeout(()=>window.print(), 100); // <— asegura que no salga en blanco
+  }
   $("#btnPrint").addEventListener("click", printDoc);
 });
