@@ -4,12 +4,22 @@
   --accent:#d4af37; --border:#000;
   --radius:14px;
 }
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1829; --bg-2:#0c2137;
+    --text:#e7ecf4; --card:#121821;
+    --accent:#d4af37; --border:#000;
+  }
+}
 
 /* Base */
 *{ box-sizing:border-box; }
 html,body{
   margin:0; padding:0; background:#f6f8fb; color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  html,body{ background:#0a1220; }
 }
 
 /* Header */
@@ -37,7 +47,7 @@ html,body{
 .view.visible{ display:block }
 .card{
   background:var(--card); border:2px solid var(--border); border-radius:var(--radius);
-  padding:14px; margin:10px 12px; box-shadow:0 2px 0 rgba(0,0,0,.08)
+  padding:14px; margin:10px 12px; box-shadow:0 2px 0 rgba(0,0,0,.12)
 }
 .toolbar{ display:flex; gap:8px; flex-wrap:wrap }
 
@@ -49,10 +59,17 @@ html,body{
 }
 .btn-dark{ background:#e8e8e8; color:#111 }
 .btn-ghost{ background:#fff; color:#111 }
+@media (prefers-color-scheme:dark){
+  .btn-dark{ background:#1b2330; color:#e7ecf4 }
+  .btn-ghost{ background:#0f1623; color:#e7ecf4 }
+}
 .btn:disabled{ opacity:.6; cursor:not-allowed }
 
 input,select,textarea{
   width:100%; padding:10px 12px; border:2px solid var(--border); border-radius:12px; background:#fff; font-size:16px;
+}
+@media (prefers-color-scheme:dark){
+  input,select,textarea{ background:#0f1623; color:#e7ecf4; }
 }
 textarea{ min-height:90px; resize:vertical }
 .amount{ font-weight:800 }
@@ -64,23 +81,21 @@ textarea{ min-height:90px; resize:vertical }
 
 /* Tabla */
 .tableWrap{ overflow:auto }
-table{ width:100%; border-collapse:collapse }
+table{ width:100%; border-collapse:collapse; background:var(--card) }
 th,td{ border:2px solid var(--border); padding:8px; text-align:left }
 td.right{ text-align:right }
 
-/* Ocultar “solo en pantalla” */
+/* Solo pantalla */
 .no-screen{ display:none; }
 
 /* -------- IMPRESIÓN: SOLO PDF (A4) -------- */
 @media print {
   @page { size: A4; margin: 12mm; }
 
-  /* Oculta todo excepto el contenedor del PDF */
   body * { visibility: hidden !important; }
 
-  /* ¡Mostrar el PDF aunque esté oculto en pantalla! */
   #printContainer{
-    display:block !important;         /* <— CLAVE: lo forzamos a mostrarse */
+    display:block !important;
     position: fixed; inset:0 auto auto 0; width:100%;
     background:#fff; z-index:99999;
   }
@@ -92,13 +107,11 @@ td.right{ text-align:right }
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
 
-  /* Temas */
   .theme-fac th{ background:#f2f2f2; }
   .theme-cot th{ background:#eef7ff; }
   .theme-fac #pDocTitle{ color:#000; }
   .theme-cot #pDocTitle{ color:#1a4a7a; }
 
-  /* Cabecera PDF */
   #pdfHeader{
     display:flex; justify-content:space-between; align-items:flex-start;
     border-bottom:2px solid #ddd; padding-bottom:.35cm; margin-bottom:.8cm;
@@ -109,20 +122,16 @@ td.right{ text-align:right }
   #pdfHeaderRight{ text-align:right; }
   #pdfHeaderRight img{ width:110px; height:auto; border-radius:8px; }
 
-  /* Tablas */
   table{ width:100%; border-collapse:collapse }
   th,td{ border:1px solid #aaa; padding:6px; vertical-align:top }
   td.right{ text-align:right }
 
-  /* Totales */
   #pdfTotals{ width:40%; margin-left:auto; margin-top:.6cm }
   #pdfTotals tr:last-child td{ font-weight:700; background:#f3f3f3 }
 
-  /* Notas y pie */
   #pdfNotes{ margin-top:1cm }
   #pdfNotes p{ margin:.25cm 0 }
   #pdfFooter{ margin-top:1.2cm; display:flex; justify-content:space-between; font-size:10px; color:#666 }
 
-  /* Compactar si hay muchas filas */
   #pdfSheet.compact th, #pdfSheet.compact td, #pdfSheet.compact #pdfTotals td{ padding:4px }
 }
