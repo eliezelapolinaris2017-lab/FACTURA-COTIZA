@@ -13,9 +13,9 @@
   <header class="header no-print">
     <button id="btnToggle" aria-label="Menú">☰</button>
     <div class="brand">FACTURA-COTIZA</div>
-    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <div class="auth">
       <span id="authState">Sin sesión</span>
-      <button class="btn btn-ghost" id="btnLogin">Iniciar sesión con Google</button>
+      <button class="btn btn-ghost" id="btnLogin">Iniciar sesión</button>
       <button class="btn btn-dark" id="btnLogout" style="display:none">Salir</button>
     </div>
   </header>
@@ -26,9 +26,8 @@
     <a href="#inicio" class="navlink active" data-nav="inicio">🏠 Inicio</a>
     <a href="#nuevo" class="navlink" data-nav="nuevo">🧾 Nuevo</a>
     <a href="#historial" class="navlink" data-nav="historial">📚 Historial</a>
-    <a href="#reportes" class="navlink" data-nav="reportes">📈 Reportes</a>
     <a href="#config" class="navlink" data-nav="config">⚙️ Configuración</a>
-    <div style="margin-top:14px;font-size:12px;opacity:.8">UID: <span id="uid">—</span></div>
+    <div class="uid">UID: <span id="uid">—</span></div>
   </aside>
 
   <!-- Vistas -->
@@ -37,11 +36,10 @@
     <section id="view-inicio" class="view visible">
       <div class="card">
         <h2>Bienvenido</h2>
-        <p>Cree facturas o cotizaciones, guárdelas en Firestore y expórtelas a PDF.</p>
+        <p>Administre facturas y cotizaciones. Exporte a PDF y sincronice con Firebase.</p>
         <div class="toolbar">
-          <a class="btn" href="#nuevo" data-nav="nuevo">➕ Nuevo</a>
+          <a class="btn" href="#nuevo" data-nav="nuevo">🧾 Nuevo</a>
           <a class="btn" href="#historial" data-nav="historial">📚 Historial</a>
-          <a class="btn" href="#reportes" data-nav="reportes">📈 Reportes</a>
           <a class="btn" href="#config" data-nav="config">⚙️ Configuración</a>
         </div>
       </div>
@@ -161,14 +159,6 @@
       </div>
     </section>
 
-    <!-- Reportes (simple placeholder, se alimenta del historial que ya está en vivo) -->
-    <section id="view-reportes" class="view">
-      <div class="card">
-        <h2>Reportes rápidos</h2>
-        <p>Use la exportación a CSV en Historial para análisis detallado. Próximamente reportes visuales.</p>
-      </div>
-    </section>
-
     <!-- Configuración -->
     <section id="view-config" class="view">
       <div class="card">
@@ -197,11 +187,8 @@
               <input id="cfgLogoCOT" type="file" accept="image/*" />
             </div>
           </div>
-
           <div class="toolbar" style="margin-top:12px">
             <button class="btn" type="submit">💾 Guardar configuración</button>
-            <button class="btn btn-dark" type="button" id="btnSync">🔁 Sincronizar con Firebase</button>
-            <span id="syncStamp" style="align-self:center;opacity:.7;margin-left:6px">—</span>
           </div>
         </form>
       </div>
