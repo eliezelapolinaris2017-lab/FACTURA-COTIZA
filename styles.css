@@ -1,0 +1,137 @@
+:root{
+  --bg:#0d2239; --bg-2:#0f2a47;
+  --text:#0b1220; --card:#fff;
+  --accent:#d4af37; --border:#000;
+  --radius:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1829; --bg-2:#0c2137;
+    --text:#e7ecf4; --card:#121821;
+    --accent:#d4af37; --border:#000;
+  }
+}
+
+/* Base */
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; padding:0; background:#f6f8fb; color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  html,body{ background:#0a1220; }
+}
+
+/* Header */
+.header{
+  background:linear-gradient(180deg,var(--bg),var(--bg-2));
+  color:#fff; padding:14px 18px; display:flex; gap:10px; align-items:center;
+}
+.brand{ font-weight:800 }
+.auth{ margin-left:auto; display:flex; gap:8px; align-items:center; }
+#btnToggle{ border:0; background:transparent; color:#fff; font-size:22px; cursor:pointer }
+
+/* Sidebar */
+#sidebar{
+  position:fixed; inset:0 auto 0 0; width:300px; max-width:85vw;
+  background:var(--bg); color:#fff; transform:translateX(-101%);
+  transition:.25s; z-index:1000; padding:18px;
+}
+#sidebar.open{ transform:none }
+#sidebar a{ display:block; padding:10px 12px; border-radius:10px; color:#fff; text-decoration:none }
+#sidebar a.active,#sidebar a:hover{ background:#ffffff1a }
+.uid{ margin-top:10px; opacity:.8; font-size:12px }
+
+/* Vistas */
+.view{ display:none; padding:16px }
+.view.visible{ display:block }
+.card{
+  background:var(--card); border:2px solid var(--border); border-radius:var(--radius);
+  padding:14px; margin:10px 12px; box-shadow:0 2px 0 rgba(0,0,0,.12)
+}
+.toolbar{ display:flex; gap:8px; flex-wrap:wrap }
+
+/* Controles */
+.btn{
+  appearance:none; border:2px solid var(--border); background:var(--accent); color:#121212;
+  font-weight:700; padding:11px 14px; border-radius:12px; box-shadow:0 2px 0 rgba(0,0,0,.35);
+  cursor:pointer; transition:.2s;
+}
+.btn-dark{ background:#e8e8e8; color:#111 }
+.btn-ghost{ background:#fff; color:#111 }
+@media (prefers-color-scheme:dark){
+  .btn-dark{ background:#1b2330; color:#e7ecf4 }
+  .btn-ghost{ background:#0f1623; color:#e7ecf4 }
+}
+.btn:disabled{ opacity:.6; cursor:not-allowed }
+
+input,select,textarea{
+  width:100%; padding:10px 12px; border:2px solid var(--border); border-radius:12px; background:#fff; font-size:16px;
+}
+@media (prefers-color-scheme:dark){
+  input,select,textarea{ background:#0f1623; color:#e7ecf4; }
+}
+textarea{ min-height:90px; resize:vertical }
+.amount{ font-weight:800 }
+
+/* Grid */
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px }
+@media (max-width:820px){ .grid2,.grid3{ grid-template-columns:1fr } }
+
+/* Tabla */
+.tableWrap{ overflow:auto }
+table{ width:100%; border-collapse:collapse; background:var(--card) }
+th,td{ border:2px solid var(--border); padding:8px; text-align:left }
+td.right{ text-align:right }
+
+/* Solo pantalla */
+.no-screen{ display:none; }
+
+/* -------- IMPRESIÓN: SOLO PDF (A4) -------- */
+@media print {
+  @page { size: A4; margin: 12mm; }
+
+  body * { visibility: hidden !important; }
+
+  #printContainer{
+    display:block !important;
+    position: fixed; inset:0 auto auto 0; width:100%;
+    background:#fff; z-index:99999;
+  }
+  #printContainer, #printContainer * { visibility: visible !important; }
+
+  #pdfSheet{
+    width:21cm; min-height:29.7cm; margin:0 auto; padding:2cm; box-sizing:border-box;
+    background:#fff; color:#000; font-family:Arial,Helvetica,sans-serif; font-size:12px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+
+  .theme-fac th{ background:#f2f2f2; }
+  .theme-cot th{ background:#eef7ff; }
+  .theme-fac #pDocTitle{ color:#000; }
+  .theme-cot #pDocTitle{ color:#1a4a7a; }
+
+  #pdfHeader{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:2px solid #ddd; padding-bottom:.35cm; margin-bottom:.8cm;
+  }
+  #pdfHeaderLeft{ flex:1; }
+  #pdfHeaderLeft h1{ font-size:16px; margin:0 0 2px 0; }
+  #pdfHeaderLeft p{ margin:.5pt 0; line-height:1.35; }
+  #pdfHeaderRight{ text-align:right; }
+  #pdfHeaderRight img{ width:110px; height:auto; border-radius:8px; }
+
+  table{ width:100%; border-collapse:collapse }
+  th,td{ border:1px solid #aaa; padding:6px; vertical-align:top }
+  td.right{ text-align:right }
+
+  #pdfTotals{ width:40%; margin-left:auto; margin-top:.6cm }
+  #pdfTotals tr:last-child td{ font-weight:700; background:#f3f3f3 }
+
+  #pdfNotes{ margin-top:1cm }
+  #pdfNotes p{ margin:.25cm 0 }
+  #pdfFooter{ margin-top:1.2cm; display:flex; justify-content:space-between; font-size:10px; color:#666 }
+
+  #pdfSheet.compact th, #pdfSheet.compact td, #pdfSheet.compact #pdfTotals td{ padding:4px }
+}
