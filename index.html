@@ -30,9 +30,8 @@
     <div class="uid">UID: <span id="uid">—</span></div>
   </aside>
 
-  <!-- Contenido principal -->
-  <main style="max-width:1000px;margin:16px auto">
-    
+  <!-- Contenido -->
+  <main>
     <!-- INICIO -->
     <section id="view-inicio" class="view visible">
       <div class="card">
@@ -46,7 +45,7 @@
       </div>
     </section>
 
-    <!-- NUEVO DOCUMENTO -->
+    <!-- NUEVO -->
     <section id="view-nuevo" class="view">
       <div class="card">
         <h2>Nuevo documento</h2>
@@ -60,7 +59,7 @@
               </select>
             </div>
             <div>
-              <label>Número (se genera automático si se deja vacío)</label>
+              <label>Número (opcional, auto si vacío)</label>
               <input id="docNumber" placeholder="FAC-#" />
             </div>
             <div>
@@ -169,7 +168,7 @@
       </div>
     </section>
 
-    <!-- CONFIGURACIÓN -->
+    <!-- CONFIG -->
     <section id="view-config" class="view">
       <div class="card">
         <h2>Configuración</h2>
@@ -205,7 +204,7 @@
     </section>
   </main>
 
-  <!-- PREVIEW / PRINT (sin QR ni canvas) -->
+  <!-- PREVIEW / PRINT -->
   <div id="printContainer" class="no-screen">
     <div id="pdfSheet" class="theme-fac">
       <div id="pdfHeader">
