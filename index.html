@@ -30,9 +30,10 @@
     <div class="uid">UID: <span id="uid">—</span></div>
   </aside>
 
-  <!-- Vistas -->
+  <!-- Contenido principal -->
   <main style="max-width:1000px;margin:16px auto">
-    <!-- Inicio -->
+    
+    <!-- INICIO -->
     <section id="view-inicio" class="view visible">
       <div class="card">
         <h2>Bienvenido</h2>
@@ -45,7 +46,7 @@
       </div>
     </section>
 
-    <!-- Nuevo -->
+    <!-- NUEVO DOCUMENTO -->
     <section id="view-nuevo" class="view">
       <div class="card">
         <h2>Nuevo documento</h2>
@@ -59,7 +60,7 @@
               </select>
             </div>
             <div>
-              <label>Número (opcional, si se deja vacío el sistema lo asigna)</label>
+              <label>Número (se genera automático si se deja vacío)</label>
               <input id="docNumber" placeholder="FAC-#" />
             </div>
             <div>
@@ -152,7 +153,7 @@
       </div>
     </section>
 
-    <!-- Historial -->
+    <!-- HISTORIAL -->
     <section id="view-historial" class="view">
       <div class="card">
         <h2>Historial (en vivo)</h2>
@@ -168,7 +169,7 @@
       </div>
     </section>
 
-    <!-- Configuración -->
+    <!-- CONFIGURACIÓN -->
     <section id="view-config" class="view">
       <div class="card">
         <h2>Configuración</h2>
@@ -204,7 +205,7 @@
     </section>
   </main>
 
-  <!-- PREVIEW / PRINT (sin QR/sello) -->
+  <!-- PREVIEW / PRINT (sin QR ni canvas) -->
   <div id="printContainer" class="no-screen">
     <div id="pdfSheet" class="theme-fac">
       <div id="pdfHeader">
