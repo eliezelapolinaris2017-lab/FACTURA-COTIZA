@@ -1,4 +1,4 @@
-// app.js (COMPLETO)
+// app.js — navegación, PDF A4 iOS-friendly, historial en vivo, backup/csv
 
 import { auth, db, login, logout, onUser } from "./firebase-init.js";
 import {
@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 window.addEventListener("DOMContentLoaded", () => {
-  // -------- Utilidades --------
+  // ---------- Utils ----------
   const $  = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const fmt = n => Number(n||0).toFixed(2);
@@ -15,52 +15,38 @@ window.addEventListener("DOMContentLoaded", () => {
   const toBase64 = f => new Promise((res,rej)=>{ if(!f) return res(""); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
   const csvCell = v => { if(v==null) return ""; const s=String(v).replace(/"/g,'""'); return /[",\n]/.test(s)?`"${s}"`:s; };
 
-  // -------- Navegación --------
+  // ---------- Navegación ----------
   const sidebar = $("#sidebar");
   $("#btnToggle")?.addEventListener("click", ()=> sidebar.classList.toggle("open"));
 
   function showView(id){
-    // activar clases
     $$(".view").forEach(v=> v.classList.remove("visible"));
     const view = $(`#view-${id}`) || $("#view-inicio");
     view.classList.add("visible");
-    // marcar enlace activo del sidebar
     $$(".navlink").forEach(a=> a.classList.toggle("active", a.dataset.nav===id));
   }
+  function syncFromHash(){ const hash=(location.hash||"#inicio").replace("#",""); showView(hash); }
 
-  function syncFromHash(){
-    const hash = (location.hash||"#inicio").replace("#","");
-    showView(hash);
-  }
-
-  // Escuchar clic en CUALQUIER elemento con data-nav (sidebar + botones de inicio)
-  document.body.addEventListener("click", (ev)=>{
-    const el = ev.target.closest("[data-nav]");
-    if(!el) return;
-    ev.preventDefault();
-    const id = el.getAttribute("data-nav");
-    history.replaceState(null,"",`#${id}`);
-    showView(id);
-    sidebar.classList.remove("open");
+  // Cualquier elemento con data-nav (sidebar + botones del inicio)
+  document.body.addEventListener("click",(ev)=>{
+    const el=ev.target.closest("[data-nav]"); if(!el) return;
+    ev.preventDefault(); const id=el.getAttribute("data-nav");
+    history.replaceState(null,"",`#${id}`); showView(id); sidebar.classList.remove("open");
   });
-
-  // Soporte para back/forward del navegador
   window.addEventListener("hashchange", syncFromHash);
-  // Vista inicial
   syncFromHash();
 
-  // -------- Estado global --------
+  // ---------- Estado ----------
   let USER = null;
   window.CFG = { companyName:"", companyPhone:"", logoFAC:"", logoCOT:"" };
-  let unsubHist = null, unsubCfg=null;
+  let unsubHist=null, unsubCfg=null;
 
-  // Cache local de config
-  const LS_CFG_KEY = "fc.cfg.v1";
+  const LS_CFG_KEY="fc.cfg.v1";
   const saveCfgLocal = cfg => localStorage.setItem(LS_CFG_KEY, JSON.stringify(cfg));
   const getCfgLocal = () => { try{ return JSON.parse(localStorage.getItem(LS_CFG_KEY)||"{}"); }catch{ return {}; } };
   Object.assign(window.CFG, getCfgLocal());
 
-  // -------- Autenticación --------
+  // ---------- Auth ----------
   $("#btnLogin").addEventListener("click", ()=> login().catch(e=>alert(e.message)));
   $("#btnLogout").addEventListener("click", ()=> logout());
 
@@ -85,7 +71,7 @@ window.addEventListener("DOMContentLoaded", () => {
     startHistorialLive();
   });
 
-  // -------- Configuración en vivo --------
+  // ---------- Config Live ----------
   function startConfigLive(){
     if(!USER) return;
     const cfgRef = doc(db, `users/${USER.uid}/profile/main`);
@@ -114,7 +100,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("Configuración guardada ✅");
   });
 
-  // -------- Numeración por tipo --------
+  // ---------- Consecutivos ----------
   async function nextNumber(type){
     const ctrRef = doc(db, `users/${USER.uid}/profile/counters`);
     const num = await runTransaction(db, async (tx)=>{
@@ -127,7 +113,7 @@ window.addEventListener("DOMContentLoaded", () => {
     return `${type}-${num}`;
   }
 
-  // -------- Nuevo documento --------
+  // ---------- Nuevo Doc ----------
   function initNuevo(){
     $("#docDate").value = isoToday();
     const tbody = $("#linesBody");
@@ -215,7 +201,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert(`✅ Guardado: ${data.type} ${data.number}`);
   }
 
-  // -------- Historial (en vivo) --------
+  // ---------- Historial (en vivo) ----------
   function startHistorialLive(){
     if(!USER) return;
     if (unsubHist) { unsubHist(); unsubHist=null; }
@@ -269,7 +255,7 @@ window.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // -------- Exportar CSV --------
+  // ---------- CSV ----------
   $("#btnCsv").addEventListener("click", exportCSV);
   async function exportCSV(){
     if(!USER) return;
@@ -280,7 +266,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const csv=[
       headers.join(","),
       ...rows.map(r=>[
-        r.number||"",r.type||"",r.date||"",r.client||"",r.phone||"",r.email||"",r.address||"",r.pay||"", (r.notes||"").replace(/\n/g," "),
+        r.number||"",r.type||"",r.date||"",r.client||"",r.phone||"",r.email||"",r.address||"",r.pay||"",
+        (r.notes||"").replace(/\n/g," "),
         r.totals?.subtotal||0,r.totals?.discPct||0,r.totals?.taxPct||0,
         r.totals?.discAmt||0,r.totals?.taxAmt||0,r.totals?.total||0, r.status||""
       ].map(csvCell).join(","))
@@ -290,7 +277,7 @@ window.addEventListener("DOMContentLoaded", () => {
     a.href=URL.createObjectURL(blob); a.download=`FACTURA-COTIZA_${isoToday()}.csv`; a.click();
   }
 
-  // -------- Backup / Restore --------
+  // ---------- Backup / Restore ----------
   $("#btnBackup").addEventListener("click", backupAll);
   $("#fileRestore").addEventListener("change", restoreBackup);
 
@@ -322,29 +309,56 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("✅ Restauración completa");
   }
 
-  // -------- Impresión --------
+  // ---------- Share texto ----------
+  async function shareDoc(){
+    try{
+      const subject = `${$("#docType").value} ${$("#docNumber").value || ""} - ${$("#clientName").value || ""}`.trim();
+      const body = [
+        `${$("#docType").value==="COT"?"Cotización":"Factura"} ${$("#docNumber").value || ""}`,
+        `Cliente: ${$("#clientName").value || ""}`,
+        `Fecha: ${$("#docDate").value || isoToday()}`,
+        `Total: ${$("#tTotal").textContent || "$0.00"}`,
+        "",
+        "Generado con FACTURA-COTIZA",
+        location.href.replace(/[#?].*$/,"")
+      ].join("\n");
+      if(navigator.share){
+        await navigator.share({ title: subject, text: body, url: location.href });
+      }else{
+        const mailto=`mailto:${encodeURIComponent($("#clientEmail").value||"")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        location.href=mailto;
+      }
+    }catch(e){
+      alert("No se pudo compartir: "+e.message);
+    }
+  }
+  $("#btnShare").addEventListener("click", shareDoc);
+
+  // ---------- PDF A4 / iOS friendly ----------
   function applyPdfTheme(type){
-    const sheet=$("#pdfSheet");
+    const sheet = $("#pdfSheet");
     sheet.classList.remove("theme-fac","theme-cot");
-    sheet.classList.add(type==="COT"?"theme-cot":"theme-fac");
-    $("#pDocTitle").innerHTML = `<strong>${type==="COT"?"Cotización":"Factura"}</strong>`;
+    sheet.classList.add(type==="COT" ? "theme-cot" : "theme-fac");
+    $("#pDocTitle").innerHTML = `<strong>${type==="COT" ? "Cotización" : "Factura"}</strong>`;
   }
 
   function renderPdfFromForm(){
-    $("#pBizName").textContent = (window.CFG?.companyName || "—");
-    $("#pBizPhone").textContent= window.CFG?.companyPhone ? `Tel: ${window.CFG.companyPhone}` : "";
-    const type=$("#docType").value;
+    const CFG = window.CFG || {};
+    $("#pBizName").textContent  = CFG.companyName || "—";
+    $("#pBizPhone").textContent = CFG.companyPhone ? `Tel: ${CFG.companyPhone}` : "";
+    const type = $("#docType").value;
     applyPdfTheme(type);
-    const logo= type==="COT" ? (window.CFG?.logoCOT||"") : (window.CFG?.logoFAC||"");
-    if(logo) $("#pLogo").src = logo;
+    const logo = type==="COT" ? (CFG.logoCOT||"") : (CFG.logoFAC||"");
+    const pLogo = $("#pLogo");
+    pLogo.src = logo || "assets/logo-placeholder.png";
 
-    $("#pNumber").textContent = $("#docNumber").value || "—";
-    $("#pDate").textContent   = $("#docDate").value || isoToday();
+    $("#pNumber").textContent     = $("#docNumber").value || "—";
+    $("#pDate").textContent       = $("#docDate").value || isoToday();
     $("#pClientName").textContent = $("#clientName").value || "—";
-    $("#pPay").textContent    = $("#docPay").value || "—";
-    $("#pStatus").textContent = "final";
-    $("#pEmail").textContent  = $("#clientEmail").value || "—";
-    $("#pAddress").textContent= $("#clientAddress").value || "—";
+    $("#pPay").textContent        = $("#docPay").value || "—";
+    $("#pStatus").textContent     = "final";
+    $("#pEmail").textContent      = $("#clientEmail").value || "—";
+    $("#pAddress").textContent    = $("#clientAddress").value || "—";
 
     const tbody=$("#pLines"); tbody.innerHTML="";
     document.querySelectorAll("#linesBody tr").forEach(tr=>{
@@ -375,37 +389,19 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#pGen").textContent     = `Generado: ${new Date().toLocaleString()}`;
     $("#pLink").textContent    = location.href.replace(/[#?].*$/,"");
 
-    const rowsCount = $("#pLines").querySelectorAll("tr").length;
-    const sheet=$("#pdfSheet");
-    sheet.classList.toggle("compact", rowsCount>=10);
+    const rows = $("#pLines").querySelectorAll("tr").length;
+    $("#pdfSheet").classList.toggle("compact", rows>=10);
   }
 
   function printDoc(){
     renderPdfFromForm();
-    setTimeout(()=>window.print(), 100);
+    const img = $("#pLogo");
+    const ensurePrint = () => {
+      $("#printContainer")?.classList.add("show");
+      setTimeout(()=>window.print(), 120);
+    };
+    if (!img || img.complete) ensurePrint();
+    else { img.addEventListener("load", ensurePrint, {once:true}); img.addEventListener("error", ensurePrint, {once:true}); }
   }
   $("#btnPrint").addEventListener("click", printDoc);
-
-  // -------- Compartir --------
-  async function shareDoc(){
-    try{
-      const subject = `${$("#docType").value} ${$("#docNumber").value || ""} - ${$("#clientName").value || ""}`.trim();
-      const body = [
-        `${$("#docType").value==="COT"?"Cotización":"Factura"} ${$("#docNumber").value || ""}`,
-        `Cliente: ${$("#clientName").value || ""}`,
-        `Total: ${$("#tTotal").textContent || "$0.00"}`,
-        "",
-        "Generado con FACTURA-COTIZA",
-        location.href.replace(/[#?].*$/,"")
-      ].join("\n");
-      if(navigator.share){
-        await navigator.share({ title: subject, text: body, url: location.href });
-      }else{
-        const mailto=`mailto:${encodeURIComponent($("#clientEmail").value||"")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        location.href=mailto;
-      }
-    }catch(e){
-      alert("No se pudo compartir: "+e.message);
-    }
-  }
 });
