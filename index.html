@@ -1,82 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>FACTURA-COTIZA</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" />
 </head>
 <body>
-  <div class="app-shell">
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar">
-      <div class="brand">
-        <img id="brandLogo" src="" alt="Logo" />
-        <h2>FACTURA-COTIZA</h2>
-      </div>
 
-      <nav class="nav">
-        <button class="navlink active" data-nav="nuevo">🧾 Nuevo</button>
-        <button class="navlink" data-nav="historial">📚 Historial</button>
-        <button class="navlink" data-nav="config">⚙️ Configuración</button>
-      </nav>
+  <!-- Header -->
+  <header class="header no-print">
+    <button id="btnToggle" aria-label="Menú">☰</button>
+    <div class="brand">FACTURA-COTIZA</div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <span id="authState">Sin sesión</span>
+      <button class="btn btn-ghost" id="btnLogin">Iniciar sesión con Google</button>
+      <button class="btn btn-dark" id="btnLogout" style="display:none">Salir</button>
+    </div>
+  </header>
 
-      <footer class="auth-box">
-        <div class="auth-info">
-          <p><b>Estado:</b> <span id="authState">Sin sesión</span></p>
-          <p><b>UID:</b> <span id="uid">—</span></p>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="no-print">
+    <h3 style="margin-top:0">Menú</h3>
+    <a href="#inicio" class="navlink active" data-nav="inicio">🏠 Inicio</a>
+    <a href="#nuevo" class="navlink" data-nav="nuevo">🧾 Nuevo</a>
+    <a href="#historial" class="navlink" data-nav="historial">📚 Historial</a>
+    <a href="#reportes" class="navlink" data-nav="reportes">📈 Reportes</a>
+    <a href="#config" class="navlink" data-nav="config">⚙️ Configuración</a>
+    <div style="margin-top:14px;font-size:12px;opacity:.8">UID: <span id="uid">—</span></div>
+  </aside>
+
+  <!-- Vistas -->
+  <main style="max-width:1000px;margin:16px auto">
+    <!-- Inicio -->
+    <section id="view-inicio" class="view visible">
+      <div class="card">
+        <h2>Bienvenido</h2>
+        <p>Cree facturas o cotizaciones, guárdelas en Firestore y expórtelas a PDF.</p>
+        <div class="toolbar">
+          <a class="btn" href="#nuevo" data-nav="nuevo">➕ Nuevo</a>
+          <a class="btn" href="#historial" data-nav="historial">📚 Historial</a>
+          <a class="btn" href="#reportes" data-nav="reportes">📈 Reportes</a>
+          <a class="btn" href="#config" data-nav="config">⚙️ Configuración</a>
         </div>
-        <button id="btnLogin" class="btn btn-gold">🔑 Iniciar sesión con Google</button>
-        <button id="btnLogout" class="btn btn-dark" style="display:none">🚪 Cerrar sesión</button>
-      </footer>
-    </aside>
+      </div>
+    </section>
 
-    <!-- Main -->
-    <main class="main">
-      <header class="topbar">
-        <button id="btnToggle" class="hamburger" aria-label="Mostrar/ocultar menú">☰</button>
-        <h1>FACTURA-COTIZA</h1>
-      </header>
-
-      <!-- NUEVO -->
-      <section id="view-nuevo" class="view visible">
-        <h2>🧾 Nueva Factura o Cotización</h2>
-
-        <form id="formDoc" class="card">
-          <h3>Negocio</h3>
-          <div class="grid">
-            <label>Nombre del negocio
-              <input id="bizName" placeholder="Ej. Oasis Air Cleaner Services LLC" />
-            </label>
-            <label>Teléfono
-              <input id="bizPhone" inputmode="tel" placeholder="787-000-0000" />
-            </label>
-            <label>Logo (opcional)
-              <input id="bizLogo" type="file" accept="image/*" />
-            </label>
-            <div class="logo-preview">
-              <img id="bizLogoPreview" alt="Logo" />
-            </div>
-          </div>
-
-          <h3>Documento</h3>
-          <div class="grid">
-            <label>Tipo
+    <!-- Nuevo -->
+    <section id="view-nuevo" class="view">
+      <div class="card">
+        <h2>Nuevo documento</h2>
+        <form id="formDoc">
+          <div class="grid2">
+            <div>
+              <label>Tipo</label>
               <select id="docType">
-                <option value="FAC">Factura</option>
-                <option value="COT">Cotización</option>
+                <option value="FAC">Factura (FAC)</option>
+                <option value="COT">Cotización (COT)</option>
               </select>
-            </label>
-            <label>Número
-              <input id="docNumber" placeholder="FAC-1 / COT-1" />
-            </label>
-            <label>Fecha
+            </div>
+            <div>
+              <label>Número (opcional, si se deja vacío el sistema lo asigna)</label>
+              <input id="docNumber" placeholder="FAC-#" />
+            </div>
+            <div>
+              <label>Fecha</label>
               <input id="docDate" type="date" />
-            </label>
-            <label>Cliente
-              <input id="clientName" placeholder="Nombre del cliente" />
-            </label>
-            <label>Método de pago
+            </div>
+            <div>
+              <label>Método de pago</label>
               <select id="docPay">
                 <option>ATH Móvil</option>
                 <option>Tarjeta</option>
@@ -85,138 +78,193 @@
                 <option>PayPal</option>
                 <option>Otros</option>
               </select>
-            </label>
+            </div>
+            <div>
+              <label>Cliente</label>
+              <input id="clientName" placeholder="Nombre del cliente" />
+            </div>
+            <div>
+              <label>Teléfono</label>
+              <input id="clientPhone" placeholder="(787) 000-0000" />
+            </div>
           </div>
 
-          <h3>Servicios / Ítems</h3>
-          <div class="tablewrap">
-            <table class="table" id="tbl">
+          <h3 style="margin:14px 0 8px">Líneas</h3>
+          <div class="tableWrap">
+            <table>
               <thead>
                 <tr>
-                  <th>Detalle del servicio</th>
-                  <th style="width: 11ch" class="right">Costo</th>
-                  <th style="width: 6ch"></th>
+                  <th style="width:16%">Ítem</th>
+                  <th>Descripción</th>
+                  <th style="width:14%">Precio</th>
+                  <th style="width:12%">Cant.</th>
+                  <th style="width:14%">Importe</th>
+                  <th style="width:40px">—</th>
                 </tr>
               </thead>
-              <tbody id="lines"></tbody>
+              <tbody id="linesBody"></tbody>
             </table>
           </div>
-          <button type="button" id="addLine" class="btn">➕ Añadir línea</button>
+          <button class="btn" id="btnAddLine" type="button">＋ Añadir línea</button>
 
-          <div class="totals">
-            <label>IVU %
-              <input id="ivuPct" type="number" step="0.01" inputmode="decimal" value="0" />
-            </label>
-            <div class="row"><span>Subtotal</span><b id="tSubtotal">$0.00</b></div>
-            <div class="row"><span>IVU</span><b id="tIVU">$0.00</b></div>
-            <div class="row total"><span>Total</span><b id="tTotal">$0.00</b></div>
+          <div class="grid3" style="margin-top:14px">
+            <div>
+              <label>Descuento (%)</label>
+              <input id="tDiscPct" type="number" step="0.01" value="0" inputmode="decimal" />
+            </div>
+            <div>
+              <label>IVU (%)</label>
+              <input id="tTaxPct" type="number" step="0.01" value="0" inputmode="decimal" />
+            </div>
+            <div>
+              <label>Subtotal</label>
+              <div class="amount" id="tSubtotal">$0.00</div>
+            </div>
+            <div>
+              <label>Descuento</label>
+              <div class="amount" id="tDiscAmt">$0.00</div>
+            </div>
+            <div>
+              <label>Impuesto</label>
+              <div class="amount" id="tTaxAmt">$0.00</div>
+            </div>
+            <div>
+              <label>Total</label>
+              <div class="amount" id="tTotal">$0.00</div>
+            </div>
           </div>
 
-          <label>Garantía / Notas
-            <textarea id="notes" rows="3" placeholder="Garantía de 30 días en mano de obra."></textarea>
+          <label style="margin-top:12px;display:block">Garantía / Notas</label>
+          <textarea id="docNotes" placeholder="Política de garantía, condiciones, etc."></textarea>
+
+          <div class="toolbar" style="margin-top:12px">
+            <button type="submit" class="btn">💾 Guardar</button>
+            <button type="button" class="btn btn-dark" id="btnPrint">🖨️ PDF</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Historial -->
+    <section id="view-historial" class="view">
+      <div class="card">
+        <h2>Historial (en vivo)</h2>
+        <div id="listDocs"></div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn" id="btnCsv">⬇️ Exportar CSV</button>
+          <button class="btn btn-dark" id="btnBackup">📦 Backup JSON</button>
+          <label class="btn btn-dark" style="cursor:pointer">
+            ⬆️ Restaurar
+            <input id="fileRestore" type="file" accept="application/json" style="display:none" />
           </label>
-
-          <div class="toolbar end">
-            <button type="button" id="btnPdf" class="btn">📄 PDF</button>
-            <button type="submit" class="btn btn-gold">💾 Guardar</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- HISTORIAL -->
-      <section id="view-historial" class="view">
-        <h2>📚 Historial</h2>
-        <div class="toolbar">
-          <button id="btnReload" class="btn">🔄 Recargar</button>
-          <button id="btnCsv" class="btn btn-gold">📤 Exportar CSV</button>
-          <button id="btnBackup" class="btn btn-gold">💾 Backup JSON</button>
-          <label class="btn btn-dark" for="fileRestore" style="cursor:pointer">📂 Restaurar</label>
-          <input type="file" id="fileRestore" accept="application/json" style="display:none">
         </div>
-        <div id="listDocs" class="list"></div>
-      </section>
+      </div>
+    </section>
 
-      <!-- CONFIG -->
-      <section id="view-config" class="view">
-        <h2>⚙️ Configuración</h2>
-        <form id="formCfg" class="card">
-          <div class="grid">
-            <label>Nombre del negocio
+    <!-- Reportes (simple placeholder, se alimenta del historial que ya está en vivo) -->
+    <section id="view-reportes" class="view">
+      <div class="card">
+        <h2>Reportes rápidos</h2>
+        <p>Use la exportación a CSV en Historial para análisis detallado. Próximamente reportes visuales.</p>
+      </div>
+    </section>
+
+    <!-- Configuración -->
+    <section id="view-config" class="view">
+      <div class="card">
+        <h2>Configuración</h2>
+        <form id="formCfg">
+          <div class="grid2">
+            <div>
+              <label>Nombre del negocio</label>
               <input id="cfgName" />
-            </label>
-            <label>Teléfono
-              <input id="cfgPhone" inputmode="tel" />
-            </label>
-            <label>Logo para FACTURA (FAC)
-              <input type="file" id="cfgLogoFAC" accept="image/*">
-            </label>
-            <label>Logo para COTIZACIÓN (COT)
-              <input type="file" id="cfgLogoCOT" accept="image/*">
-            </label>
-          </div>
-          <div class="logos">
-            <div>
-              <p>Vista FAC</p>
-              <img id="prevFAC" class="preview" alt="Logo FAC" />
             </div>
             <div>
-              <p>Vista COT</p>
-              <img id="prevCOT" class="preview" alt="Logo COT" />
+              <label>Teléfono</label>
+              <input id="cfgPhone" />
             </div>
           </div>
-          <div class="toolbar end">
-            <button type="button" id="btnSync" class="btn sync-btn">🔁 Sincronizar con Firebase</button>
-            <button type="submit" class="btn btn-gold">💾 Guardar configuración</button>
+
+          <div class="grid2" style="margin-top:8px">
+            <div>
+              <label>Logo para Factura (PNG/JPG)</label>
+              <img id="prevFAC" alt="Logo FAC" style="display:block;width:120px;height:auto;margin-bottom:6px;border:2px solid #000;border-radius:8px" />
+              <input id="cfgLogoFAC" type="file" accept="image/*" />
+            </div>
+            <div>
+              <label>Logo para Cotización (PNG/JPG)</label>
+              <img id="prevCOT" alt="Logo COT" style="display:block;width:120px;height:auto;margin-bottom:6px;border:2px solid #000;border-radius:8px" />
+              <input id="cfgLogoCOT" type="file" accept="image/*" />
+            </div>
           </div>
-          <p class="muted" id="syncStamp" style="margin-top:6px">—</p>
+
+          <div class="toolbar" style="margin-top:12px">
+            <button class="btn" type="submit">💾 Guardar configuración</button>
+            <button class="btn btn-dark" type="button" id="btnSync">🔁 Sincronizar con Firebase</button>
+            <span id="syncStamp" style="align-self:center;opacity:.7;margin-left:6px">—</span>
+          </div>
         </form>
-      </section>
-    </main>
-  </div>
+      </div>
+    </section>
+  </main>
 
-  <!-- ========= PLANTILLA A4 SENCILLA PARA PDF ========= -->
-  <section id="printArea">
-    <div class="sheet-slim" id="invSheet">
-      <header class="inv-head">
-        <div class="biz">
-          <img id="invLogo" class="logo" alt="Logo" />
-          <div>
-            <h2 id="invBizName">Nombre del Negocio</h2>
-            <div class="muted">Tel: <span id="invBizPhone">—</span></div>
+  <!-- PREVIEW / PRINT -->
+  <div id="printContainer" class="no-screen">
+    <div id="pdfSheet" class="theme-fac">
+      <div id="pdfHeader">
+        <div id="pdfHeaderLeft">
+          <h1 id="pBizName">Nombre del Negocio</h1>
+          <p id="pBizPhone">Tel: —</p>
+          <div id="pdfInfo">
+            <p id="pDocTitle"><strong>Factura</strong></p>
+            <p><b>Número:</b> <span id="pNumber">—</span></p>
+            <p><b>Fecha:</b> <span id="pDate">—</span></p>
+            <p><b>Cliente:</b> <span id="pClientName">—</span></p>
+            <p><b>Pago:</b> <span id="pPay">—</span></p>
+            <p><b>Estado:</b> <span id="pStatus">final</span></p>
           </div>
         </div>
-
-        <div class="meta">
-          <h3 id="invTitle">Factura</h3>
-          <p><b>Número:</b> <span id="invNumber">FAC-1</span></p>
-          <p><b>Fecha:</b> <span id="invDate">—</span></p>
-          <p><b>Cliente:</b> <span id="invClient">—</span></p>
+        <div id="pdfHeaderRight">
+          <img id="pLogo" src="assets/logo-placeholder.png" alt="Logo empresa">
         </div>
-      </header>
+      </div>
 
-      <table class="inv-table">
+      <h3>Detalle del servicio</h3>
+      <table id="pdfTable">
         <thead>
           <tr>
-            <th>Detalle del servicio</th>
-            <th class="right" style="width:22mm">Costo</th>
+            <th>Ítem</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Cant.</th>
+            <th>Importe</th>
           </tr>
         </thead>
-        <tbody id="invLines"></tbody>
+        <tbody id="pLines"></tbody>
       </table>
 
-      <section class="inv-totals">
-        <div class="row"><span>Subtotal</span><b id="invSubtotal">$0.00</b></div>
-        <div class="row"><span>IVU</span><b id="invTax">$0.00</b></div>
-        <div class="row total"><span>Total</span><b id="invTotal">$0.00</b></div>
-      </section>
+      <table id="pdfTotals">
+        <tbody>
+          <tr><td>Subtotal</td><td class="right" id="pSubtotal">$0.00</td></tr>
+          <tr><td id="pDiscLbl">Descuento (0%)</td><td class="right" id="pDiscAmt">$0.00</td></tr>
+          <tr><td id="pTaxLbl">IVU (0%)</td><td class="right" id="pTaxAmt">$0.00</td></tr>
+          <tr><td>Total</td><td class="right" id="pTotal">$0.00</td></tr>
+        </tbody>
+      </table>
 
-      <section class="inv-notes">
-        <p><b>Garantía / Notas:</b></p>
-        <p id="invNotes">—</p>
-      </section>
+      <div id="pdfNotes">
+        <p><strong>Garantía / Notas:</strong></p>
+        <p id="pNotes">—</p>
+      </div>
+
+      <div id="pdfFooter">
+        <span id="pLink">https://eliezelapolinaris2017-lab.github.io/FACTURA-COTIZA/</span>
+        <span><span id="pGen">Generado: —</span> — Página 1 de 1</span>
+      </div>
     </div>
-  </section>
+  </div>
 
+  <!-- Scripts -->
   <script type="module" src="firebase-init.js"></script>
   <script type="module" src="app.js"></script>
 </body>
