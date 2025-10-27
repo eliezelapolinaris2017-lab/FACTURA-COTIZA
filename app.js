@@ -28,7 +28,6 @@ window.addEventListener("DOMContentLoaded", () => {
     $$(".view").forEach(v=> v.classList.remove("visible"));
     $(`#view-${id}`).classList.add("visible");
   }
-  // Deep link inicial
   (()=>{
     const hash = (location.hash||"#inicio").replace("#","");
     const link = $(`.navlink[data-nav="${hash}"]`);
@@ -40,11 +39,10 @@ window.addEventListener("DOMContentLoaded", () => {
   window.CFG = { companyName:"", companyPhone:"", logoFAC:"", logoCOT:"" };
   let unsubHist = null, unsubCfg=null;
 
-  // ---- Config offline (cache) ----
+  // Config offline (cache)
   const LS_CFG_KEY = "fc.cfg.v1";
   const saveCfgLocal = cfg => localStorage.setItem(LS_CFG_KEY, JSON.stringify(cfg));
   const getCfgLocal = () => { try{ return JSON.parse(localStorage.getItem(LS_CFG_KEY)||"{}"); }catch{ return {}; } };
-  // mezclar valores locales de una vez
   Object.assign(window.CFG, getCfgLocal());
 
   // Auth
@@ -78,12 +76,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const cfgRef = doc(db, `users/${USER.uid}/profile/main`);
     unsubCfg = onSnapshot(cfgRef, (snap)=>{
       if(snap.exists()) window.CFG = { ...window.CFG, ...snap.data() };
-      // reflejar en UI
       $("#cfgName").value  = window.CFG.companyName || "";
       $("#cfgPhone").value = window.CFG.companyPhone || "";
       $("#prevFAC").src    = window.CFG.logoFAC || "assets/logo-placeholder.png";
       $("#prevCOT").src    = window.CFG.logoCOT || "assets/logo-placeholder.png";
-      // guardar también local para uso offline
       saveCfgLocal(window.CFG);
     });
   }
@@ -309,34 +305,7 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("✅ Restauración completa");
   }
 
-  // -------- Firma digital (sello de bloques) --------
-  async function drawSeal(canvas, payload){
-    const ctx=canvas.getContext("2d");
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    const hash = await sha256(JSON.stringify(payload));
-    // usar los primeros 15x15*bits para un mosaico
-    const cols=15, rows=15, pad=4;
-    const s = Math.floor((canvas.width - pad*2)/cols);
-    ctx.strokeStyle="#999"; ctx.lineWidth=1;
-    ctx.strokeRect(0.5,0.5,canvas.width-1,canvas.height-1);
-    for(let i=0;i<rows;i++){
-      for(let j=0;j<cols;j++){
-        const k=(i*cols+j)%hash.length;
-        const v=parseInt(hash.slice(k,k+2),16);
-        const on = (v & 0b100000) !== 0;
-        ctx.fillStyle = on? "#111":"#fff";
-        ctx.fillRect(pad+j*s, pad+i*s, s-1, s-1);
-      }
-    }
-  }
-  async function sha256(str){
-    const enc=new TextEncoder().encode(str);
-    const buf=await crypto.subtle.digest("SHA-256", enc);
-    const arr=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0"));
-    return arr.join("");
-  }
-
-  // -------- Impresión (FAC/COT) --------
+  // Impresión (sin QR/sello)
   function applyPdfTheme(type){
     const sheet=$("#pdfSheet");
     sheet.classList.remove("theme-fac","theme-cot");
@@ -389,15 +358,6 @@ window.addEventListener("DOMContentLoaded", () => {
     $("#pGen").textContent     = `Generado: ${new Date().toLocaleString()}`;
     $("#pLink").textContent    = location.href.replace(/[#?].*$/,"");
 
-    const payloadSeal = {
-      n: $("#docNumber").value||"",
-      t: type,
-      d: $("#docDate").value || isoToday(),
-      c: $("#clientName").value || "",
-      s: $("#tTotal").textContent || ""
-    };
-    drawSeal($("#pSeal"), payloadSeal);
-
     const rowsCount = $("#pLines").querySelectorAll("tr").length;
     const sheet=$("#pdfSheet");
     sheet.classList.toggle("compact", rowsCount>=10);
@@ -409,7 +369,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   $("#btnPrint").addEventListener("click", printDoc);
 
-  // Compartir (Web Share)
+  // Compartir
   async function shareDoc(){
     try{
       const subject = `${$("#docType").value} ${$("#docNumber").value || ""} - ${$("#clientName").value || ""}`.trim();
@@ -424,7 +384,6 @@ window.addEventListener("DOMContentLoaded", () => {
       if(navigator.share){
         await navigator.share({ title: subject, text: body, url: location.href });
       }else{
-        // fallback: email
         const mailto=`mailto:${encodeURIComponent($("#clientEmail").value||"")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         location.href=mailto;
       }
